@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stundenplaner — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #F4F5F8;
+    --surface: #FFFFFF;
+    --ink: #1B2A4A;
+    --ink-soft: #6B6F7D;
+    --line: #E5E0D2;
+    --navy: #1B2A4A;
+    --navy-soft: #E9ECF4;
+    --mustard: #E0A526;
+    --mustard-soft: #FBF0DA;
+    --slate: #4A5C82;
+    --slate-soft: #EDF0F6;
+    --shadow: 0 1px 2px rgba(27,42,74,0.05), 0 8px 24px -12px rgba(27,42,74,0.14);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+  }
+  h1,h2,h3, .display{ font-family:'Lexend', sans-serif; }
+
+  /* ---------- Top nav ---------- */
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 40px;
+    background:var(--surface);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{ font-family:'Lexend',sans-serif; font-weight:700; font-size:20px; letter-spacing:-0.02em; }
+  .brand span{ color:var(--navy); }
+  .nav-links{ display:flex; align-items:center; gap:6px; }
+  .nav-item{
+    display:flex; align-items:center; gap:7px;
+    padding:9px 16px; border-radius:10px;
+    color:var(--ink-soft); font-size:14px; font-weight:500;
+    text-decoration:none; cursor:pointer;
+  }
+  .nav-item.active{ background:var(--navy-soft); color:var(--navy); }
+  .nav-item svg{ width:16px; height:16px; }
+  .nav-item.logout{ border:1px solid var(--line); color:var(--ink-soft); }
+
+  /* ---------- Page shell ---------- */
+  .page{ max-width:900px; margin:0 auto; padding:40px 40px 80px; }
+
+  .eyebrow{
+    color:var(--navy); font-size:12.5px; font-weight:700;
+    letter-spacing:0.14em; text-transform:uppercase; margin:0 0 8px;
+  }
+  h1.page-title{ font-size:32px; font-weight:700; margin:0 0 8px; letter-spacing:-0.02em; }
+  .subtitle{ color:var(--ink-soft); font-size:15px; margin:0 0 28px; }
+
+  /* ---------- Stat pills ---------- */
+  .stats{ display:flex; gap:12px; margin-bottom:28px; flex-wrap:wrap; }
+  .stat{
+    display:flex; align-items:center; gap:10px;
+    background:var(--surface); border:1px solid var(--line);
+    padding:10px 16px; border-radius:12px; font-size:14px; color:var(--ink-soft);
+  }
+  .stat b{ color:var(--ink); font-weight:700; }
+  .dot{ width:8px; height:8px; border-radius:50%; }
+  .dot.navy{ background:var(--navy); }
+  .dot.mustard{ background:var(--mustard); }
+  .dot.slate{ background:var(--slate); }
+
+  /* ---------- View switch (single control: Module | Klassen) ---------- */
+  .view-switch-row{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:22px; flex-wrap:wrap; }
+  .view-switch-copy{ font-size:13.5px; color:var(--ink-soft); }
+  .view-switch{
+    position:relative;
+    display:inline-flex; align-items:center;
+    background:var(--navy-soft); border-radius:999px;
+    padding:4px; width:280px; height:48px; flex-shrink:0;
+    border:1px solid var(--line);
+  }
+  .view-switch-thumb{
+    position:absolute; top:4px; left:4px;
+    width:calc(50% - 4px); height:calc(100% - 8px);
+    background:var(--surface); border-radius:999px;
+    box-shadow:0 2px 8px rgba(20,22,43,0.14);
+    transition:transform .22s cubic-bezier(.4,0,.2,1);
+  }
+  .view-switch.is-classes .view-switch-thumb{ transform:translateX(100%); }
+  .view-switch-option{
+    position:relative; z-index:1; flex:1;
+    display:flex; align-items:center; justify-content:center; gap:7px;
+    font-family:'Lexend',sans-serif; font-size:13.5px; font-weight:600;
+    color:var(--ink-soft); cursor:pointer; user-select:none;
+    height:100%; border-radius:999px; transition:color .18s; border:none; background:none;
+  }
+  .view-switch-option .swatch{ width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .view-switch:not(.is-classes) .view-switch-option[data-side="modules"]{ color:var(--mustard); }
+  .view-switch.is-classes .view-switch-option[data-side="classes"]{ color:var(--slate); }
+
+  /* ---------- List panel ---------- */
+  .panel{
+    background:var(--surface); border:1px solid var(--line); border-radius:16px;
+    padding:8px 22px; box-shadow:var(--shadow);
+    display:none;
+  }
+  .panel.is-visible{ display:block; }
+
+  .row-link{
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    padding:16px 2px;
+    border-top:1px solid var(--line);
+    text-decoration:none; color:inherit;
+    cursor:pointer;
+  }
+  .row-link:first-child{ border-top:none; }
+  .row-left{ display:flex; align-items:center; gap:14px; }
+  .row-link .chip{
+    width:38px; height:38px; border-radius:11px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px; font-weight:700; font-family:'Lexend',sans-serif;
+    color:#fff;
+  }
+  .row-name{ font-size:17px; font-weight:600; letter-spacing:-0.01em; }
+  .row-meta{ font-size:14px; color:var(--ink-soft); margin-left:4px; }
+  .row-arrow{ color:#C7C9DA; display:flex; transition:transform .15s, color .15s; }
+  .row-link:hover{ background:var(--navy-soft); margin:0 -22px; padding:16px 22px; border-radius:12px; border-top-color:transparent; }
+  .row-link:hover + .row-link{ border-top-color:transparent; }
+  .row-link:hover .row-arrow{ transform:translateX(3px); color:var(--navy); }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="brand">Stunden<span>Planer</span></div>
+  <div class="nav-links">
+    <a class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M9 4v6"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+      Profil
+    </a>
+    <a class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 000-2l1-1.7-1.7-1-1 1.7a1.7 1.7 0 00-2 0l-1-1.7-1.7 1 1 1.7a1.7 1.7 0 000 2l-1 1.7 1.7 1 1-1.7a1.7 1.7 0 002 0l1 1.7 1.7-1z"/></svg>
+      Einstellungen
+    </a>
+    <a class="nav-item logout">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      Abmelden
+    </a>
+  </div>
+</div>
+
+<div class="page">
+
+  <p class="eyebrow">Übersicht</p>
+  <h1 class="page-title">Stundenplaner Dashboard</h1>
+  <p class="subtitle">Wähle ein Fach oder eine Klasse aus, um die Details zu öffnen.</p>
+
+  <div class="stats">
+    <div class="stat"><span class="dot navy"></span>Wochenstunden gesamt <b>22</b></div>
+    <div class="stat"><span class="dot mustard"></span>Module <b>6</b></div>
+    <div class="stat"><span class="dot slate"></span>Klassen <b>6</b></div>
+  </div>
+
+  <div class="view-switch-row">
+    <p class="view-switch-copy">Wähle, welche Liste du öffnen möchtest</p>
+    <div class="view-switch" id="viewSwitch">
+      <div class="view-switch-thumb"></div>
+      <button class="view-switch-option" data-side="modules"><span class="swatch" style="background:var(--mustard)"></span>Module</button>
+      <button class="view-switch-option" data-side="classes"><span class="swatch" style="background:var(--slate)"></span>Klassen</button>
+    </div>
+  </div>
+
+  <!-- Module list -->
+  <div class="panel is-visible" id="modulePanel">
+    <a class="row-link" href="module/mathematik.html">
+      <div class="row-left">
+        <span class="chip" style="background:var(--navy)">MA</span>
+        <span class="row-name">Mathematik</span>
+        <span class="row-meta">5 Std./Woche</span>
+      </div>
+      <span class="row-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></span>
+    </a>
+    <a class="row-link" href="module/deutsch.html">
+      <div class="row-left">
+        <span class="chip" style="background:#C0356B">DE</span>
+        <span class="row-name">Deutsch</span>
+        <span class="row-meta">5 Std./Woche</span>
+      </div>
+      <span class="row-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></span>
+    </a>
+    <a class="row-link" href="module/englisch.html">
+      <div class="row-left">
+        <span class="chip" style="background:var(--mustard)">EN</span>
+        <span class="row-name">Englisch</span>
+        <span class="row-meta">4 Std./Woche</span>
+      </div>
+      <span class="row-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></span>
+    </a>
+    <a class="row-link" href="module/informatik.html">
+      <div class="row-left">
+        <span class="chip" style="background:var(--slate)">IF</span>
+        <span class="row-name">Informatik</span>
+        <span class="row-meta">3 Std./Woche</span>
+      </div>
+      <span class="row-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></span>
+    </a>
+    <a class="row-link" href="module/sport.html">
+      <div class="row-left">
+        <span class="chip" style="background:#2563A8">SP</span>
+        <span class="row-name">Sport</span>
+        <span class="row-meta">3 Std./Woche</span>
+      </div>
+      <span class="row-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></span>
+    </a>
+    <a class="row-link" href="module/kunst.html">
+      <div class="row-left">
+        <span class="chip" style="background:#7C4DCC">KU</span>
+        <span class="row-name">Kunst</span>
+        <span class="row-meta">2 Std./Woche</span>
+      </div>
+      <span class="row-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></span>
+    </a>
+  </div>
+
+  <!-- Class list -->
+  <div class="panel" id="classPanel">
+    <a class="row-link" href="klasse/7a.html">
+      <div class="row-left">
+        <span class="chip" style="background:#5B5E77">7a</span>
+        <span class="row-name">Klasse 7a</span>
+        <span class="row-meta">22 Schüler</span>
+      </div>
+      <span class="row-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></span>
+    </a>
+    <a class="row-link" href="klasse/7b.html">
+      <div class="row-left">
+        <span class="chip" style="background:#5B5E77">7b</span>
+        <span class="row-name">Klasse 7b</span>
+        <span class="row-meta">21 Schüler</span>
+      </div>
+      <span class="row-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></span>
+    </a>
+    <a class="row-link" href="klasse/8a.html">
+      <div class="row-left">
+        <span class="chip" style="background:#5B5E77">8a</span>
+        <span class="row-name">Klasse 8a</span>
+        <span class="row-meta">24 Schüler</span>
+      </div>
+      <span class="row-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></span>
+    </a>
+    <a class="row-link" href="klasse/8b.html">
+      <div class="row-left">
+        <span class="chip" style="background:#5B5E77">8b</span>
+        <span class="row-name">Klasse 8b</span>
+        <span class="row-meta">23 Schüler</span>
+      </div>
+      <span class="row-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></span>
+    </a>
+    <a class="row-link" href="klasse/9a.html">
+      <div class="row-left">
+        <span class="chip" style="background:#5B5E77">9a</span>
+        <span class="row-name">Klasse 9a</span>
+        <span class="row-meta">20 Schüler</span>
+      </div>
+      <span class="row-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></span>
+    </a>
+    <a class="row-link" href="klasse/9b.html">
+      <div class="row-left">
+        <span class="chip" style="background:#5B5E77">9b</span>
+        <span class="row-name">Klasse 9b</span>
+        <span class="row-meta">19 Schüler</span>
+      </div>
+      <span class="row-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></span>
+    </a>
+  </div>
+
+</div>
+
+<script>
+  const viewSwitch = document.getElementById('viewSwitch');
+  const modulePanel = document.getElementById('modulePanel');
+  const classPanel = document.getElementById('classPanel');
+
+  function setView(side){
+    const showClasses = side === 'classes';
+    viewSwitch.classList.toggle('is-classes', showClasses);
+    modulePanel.classList.toggle('is-visible', !showClasses);
+    classPanel.classList.toggle('is-visible', showClasses);
+  }
+
+  viewSwitch.querySelectorAll('.view-switch-option').forEach(opt => {
+    opt.addEventListener('click', () => setView(opt.dataset.side));
+  });
+
+  setView('modules');
+</script>
+
+</body>
+</html>
