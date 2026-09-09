@@ -8,6 +8,8 @@
 | email         | varchar(50) | UQ           |
 | password hash | char(64)    | -            |
 | role          | varchar(20) | -            |
+| active        | bool        | -            |
+| created_at    | DateTime    | -            |
 
 ---
 
@@ -18,6 +20,8 @@
 | id         | int      | PK           |
 | fk_user_id | int      | FK           |
 | update     | bool     | -            |
+| expires_at | DateTime | -            |
+| created_at | DateTime | -            |
 
 ---
 
@@ -27,6 +31,8 @@
 | --------- | ------------ | ------------ |
 | id        | int          | PK           |
 | desc      | varchar(255) | -            |
+| title     | varchar(100) | -            |
+| code      | varchar(20)  | UQ           |
 
 ---
 
@@ -37,6 +43,9 @@
 | id           | int          | PK           |
 | desc         | varchar(255) | -            |
 | fk_module_id | int          | FK           |
+| title        | varchar(100) | -            |
+| start_date   | DateTime     | -            |
+| end_date     | DateTime     | -            |
 
 ---
 
@@ -47,6 +56,8 @@
 | id           | int      | PK           |
 | date         | DateTime | -            |
 | fk_course_id | int      | FK           |
+| start_time   | DateTime | -            |
+| end_time     | DateTime | -            |
 
 ---
 
