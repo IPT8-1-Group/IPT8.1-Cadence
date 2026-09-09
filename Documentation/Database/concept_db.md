@@ -59,3 +59,16 @@
 | fk_course_id | int          | FK           |
 
 ---
+
+### DetailedPlanning
+
+| Attribute           | Datentyp     | Schlüsseltyp |
+| ------------------- | ------------ | ------------ |
+| id                  | int          | PK           |
+| topic               | varchar(100) | -            |
+| desc                | varchar(255) | -            |
+| fk_course_day       | int          | FK           |
+| fk_outline_planning | int          | FK           |
+| dur_min             | int          | -            |
+
+---
