@@ -72,3 +72,16 @@
 | dur_min             | int          | -            |
 
 ---
+
+### OutlinePlanning
+
+| Attribute  | Datentyp     | Schlüsseltyp |
+| ---------- | ------------ | ------------ |
+| id         | int          | PK           |
+| title      | varchar(100) | -            |
+| desc       | varchar(255) | -            |
+| fk_course  | int          | FK           |
+| start_date | DateTime     | -            |
+| end_date   | DateTime     | -            |
+
+---
