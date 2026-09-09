@@ -61,16 +61,6 @@
 
 ---
 
-### Class
-
-| Attribute    | Datentyp     | Schlüsseltyp |
-| ------------ | ------------ | ------------ |
-| id           | int          | PK           |
-| desc         | varchar(255) | -            |
-| fk_course_id | int          | FK           |
-
----
-
 ### DetailedPlanning
 
 | Attribute           | Datentyp     | Schlüsseltyp |
