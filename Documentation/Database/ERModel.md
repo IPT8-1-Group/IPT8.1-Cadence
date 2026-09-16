@@ -12,6 +12,7 @@ erDiagram
     Course ||--|{ Course_day : has
     Course_day ||--o{ DetailedPlanning : has
     OutlinePlanning ||--o{DetailedPlanning : has
+    Module ||--||OutlinePlanning : has
 
     User{
         int id PK
