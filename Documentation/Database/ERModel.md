@@ -50,8 +50,8 @@ erDiagram
         int id PK
         DateTime date
         int fk_course_id FK
-        DateTime start_time
-        DateTime end_time
+        Time start_time
+        Time end_time
     }
     OutlinePlanning {
         int id PK
