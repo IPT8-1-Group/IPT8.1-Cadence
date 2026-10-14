@@ -1,0 +1,26 @@
+# Abhängigkeiten
+node_modules
+
+# Build
+dist/
+.vite/
+.tsbuildinfo/
+
+# Umgebungsvariablen
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+
+# Testbereich
+coverage/
+
+# Lokale IDE-Dateien
+.idea/
+
+# Betriebssystem Zwischenspeicher
+**/.DS_Store
+**/Thumbs.db
