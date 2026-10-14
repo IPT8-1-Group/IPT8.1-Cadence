@@ -56,8 +56,8 @@
 | id           | int      | PK           |
 | date         | DateTime | -            |
 | fk_course_id | int      | FK           |
-| start_time   | DateTime | -            |
-| end_time     | DateTime | -            |
+| start_time   | Time | -            |
+| end_time     | Time | -            |
 
 ---
 
