@@ -3,15 +3,14 @@ name: cadence
 services:
     db:
         image: mariadb:11.4
-        volumes:
-            -
         restart: unless-stopped
         ports:
             - "3306:3306"
         environment:
-            MARIADB-DATABASE: ${DB_NAME}
+            MARIADB_DATABASE: ${DB_NAME}
             MARIADB_USER: ${DB_USER}
             MARIADB_PASSWORD: ${DB_PASSWORD}
+            MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
         volumes:
             - db_data:/var/lib/mysql
         healthcheck:
@@ -39,7 +38,7 @@ services:
             DB_USER: ${DB_USER}
             DB_PASSWORD: ${DB_PASSWORD}
         volumes:
-            - ./backend:/app
+            - ./Backend:/app
             - /app/node_modules
         depends_on:
             db:
@@ -58,8 +57,8 @@ services:
         depends_on:
             - backend
         volumes:
-            - ./frontend:/app
-            - ./app/node_modules
+            - ./Frontend:/app
+            - /app/node_modules
     
 volumes:
     db_data:
