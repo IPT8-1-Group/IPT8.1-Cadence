@@ -1,0 +1,73 @@
+%% ||--||   one to one
+%% ||--o{   one to zero-or-many
+%% ||--|{   one to one-or-many
+%% o|--o{   zero-or-one to zero-or-many
+
+erDiagram
+    User ||--o{ Token : has
+    Module ||--|{ Course : has
+    Course ||--|{ Course_day : has
+    Course ||--o{ OutlinePlanning : has
+    Course_day ||--o{ DetailedPlanning : has
+    OutlinePlanning |o--o{ DetailedPlanning : has
+
+    User {
+        int id PK
+        varchar50 email UK
+        char64 password_hash
+        varchar20 role
+        bool active
+        DateTime created_at
+    }
+
+    Token {
+        int id PK
+        text public_key
+        bool update
+        DateTime expires_at
+        DateTime created_at
+        int fk_user_id FK
+    }
+
+    Module {
+        int id PK
+        varchar255 desc
+        varchar100 title
+        varchar20 code UK
+    }
+
+    Course {
+        int id PK
+        varchar255 desc
+        varchar100 title
+        text class
+        DateTime start_date
+        DateTime end_date
+        int fk_module_id FK
+    }
+
+    Course_day {
+        int id PK
+        DateTime date
+        Time start_time
+        Time end_time
+        int fk_course_id FK
+    }
+
+    OutlinePlanning {
+        int id PK
+        varchar100 title
+        varchar255 desc
+        DateTime start_date
+        DateTime end_date
+        int fk_course FK
+    }
+
+    DetailedPlanning {
+        int id PK
+        varchar100 topic
+        varchar255 desc
+        int dur_min
+        int fk_course_day FK
+        int fk_outline_planning FK
+    }
