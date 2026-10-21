@@ -37,6 +37,7 @@ CREATE TABLE Course(
     id INT AUTO_INCREMENT PRIMARY KEY,
     `desc` VARCHAR(255),
     title VARCHAR(100) NOT NULL,
+    class TEXT NOT NULL,
     start_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     end_date DATETIME NOT NULL,
     fk_module_id INT NOT NULL,
