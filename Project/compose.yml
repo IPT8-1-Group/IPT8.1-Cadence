@@ -5,7 +5,7 @@ services:
         image: mariadb:11.4
         restart: unless-stopped
         ports:
-            - "3306:3306"
+            - "${DB_PORT_HOST:-3307}:3306"
         environment:
             MARIADB_DATABASE: ${DB_NAME}
             MARIADB_USER: ${DB_USER}
@@ -13,6 +13,7 @@ services:
             MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
         volumes:
             - db_data:/var/lib/mysql
+            - ./Database/create.sql:/docker-entrypoint-initdb.d/01-create.sql:ro
         healthcheck:
             test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
             interval: 10s
@@ -40,6 +41,7 @@ services:
         volumes:
             - ./Backend:/app
             - /app/node_modules
+            - ./Database:/Database:ro
         depends_on:
             db:
                 condition: service_healthy

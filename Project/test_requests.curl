@@ -1,0 +1,51 @@
+### 0. Register a new user
+curl -X POST http://localhost:3000/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "password123"
+  }'
+
+### 1. Login with email & password
+### Generates a fresh RSA keypair, saves public_key & 5-min expires_at to DB, and returns the private_key
+curl -X POST http://localhost:3000/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "password123"
+  }'
+
+### 2. Verify Validity
+### Copy the "private_key" string from the login response and paste it into the "private_key" field below.
+curl -X POST http://localhost:3000/verify \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "private_key": "<PASTE_YOUR_PRIVATE_KEY_HERE>"
+  }'
+
+### 3. Refresh Key Expiration
+### Verifies the key pair matches and extends expires_at by another 5 minutes from now.
+curl -X POST http://localhost:3000/refresh \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "private_key": "<PASTE_YOUR_PRIVATE_KEY_HERE>"
+  }'
+
+### 4. Logout
+### Removes/nullifies the public_key and expires_at fields from the database, immediately revoking access.
+curl -X POST http://localhost:3000/logout \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "private_key": "<PASTE_YOUR_PRIVATE_KEY_HERE>"
+  }'
+
+### 5. Verify After Logout (Negative Test - Should return 401 Unauthorized)
+curl -X POST http://localhost:3000/verify \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "private_key": "<PASTE_YOUR_PRIVATE_KEY_HERE>"
+  }'
