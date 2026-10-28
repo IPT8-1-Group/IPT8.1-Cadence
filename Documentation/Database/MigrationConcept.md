@@ -13,7 +13,7 @@ Dieses Dokument beschreibt, wie Änderungen am Datenbankschema von `stundenplane
 
 ```
 Project/Database/
-├── schema.sql                  Gesamtstand des Schemas (Neuaufbau)
+├── create.sql                  Gesamtstand des Schemas (Neuaufbau)
 ├── changes/
 │   ├── 001_<beschreibung>.sql
 │   ├── 002_<beschreibung>.sql
@@ -22,7 +22,6 @@ Project/Database/
 │   └── 002_<beschreibung>_undo.sql
 ├── seeds/
 │   └── seed_data.sql           Start- und Testdaten
-└── MIGRATIONS.md
 ```
 
 | Ordner / Datei | Zweck |
