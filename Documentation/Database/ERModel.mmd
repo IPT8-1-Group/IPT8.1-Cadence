@@ -40,15 +40,12 @@ erDiagram
         int id PK
         varchar255 desc
         varchar100 title
-        text class
-        DateTime start_date
-        DateTime end_date
         int fk_module_id FK
     }
 
     Course_day {
         int id PK
-        DateTime date
+        int date
         Time start_time
         Time end_time
         int fk_course_id FK
@@ -58,8 +55,6 @@ erDiagram
         int id PK
         varchar100 title
         varchar255 desc
-        DateTime start_date
-        DateTime end_date
         int fk_course FK
     }
 

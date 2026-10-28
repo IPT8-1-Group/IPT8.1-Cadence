@@ -37,9 +37,6 @@ CREATE TABLE Course(
     id INT AUTO_INCREMENT PRIMARY KEY,
     `desc` VARCHAR(255),
     title VARCHAR(100) NOT NULL,
-    class TEXT NOT NULL,
-    start_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    end_date DATETIME NOT NULL,
     fk_module_id INT NOT NULL,
 
     CONSTRAINT fk_course_module
@@ -49,7 +46,7 @@ CREATE TABLE Course(
 
 CREATE TABLE Course_day(
     id INT AUTO_INCREMENT PRIMARY KEY,
-    date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    date INT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
     fk_course_id INT NOT NULL,
@@ -63,8 +60,6 @@ CREATE TABLE OutlinePlanning(
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
     `desc` VARCHAR(255),
-    start_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    end_date DATETIME NOT NULL,
     fk_course INT NOT NULL,
 
     CONSTRAINT fk_outline_course
