@@ -4,7 +4,7 @@ const router = express.Router();
 
 const modulverwaltungController =
     require('../controllers/modulverwaltung.Controller');
-const { validateModule } = require('../middlewares/modul.middleware');
+const { validateModule } = require('../middlewares/module.middleware');
 
 router.route('/')
     .get(modulverwaltungController.getModule)
