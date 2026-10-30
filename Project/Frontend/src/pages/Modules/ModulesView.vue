@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-
+import AppNavbar from '@/components/layout/AppNavbar.vue'
 </script>
 
 <template>
-  <h1>Beispiel</h1>
+  <AppNavbar></AppNavbar>
 </template>
