@@ -1,11 +1,16 @@
 const moduleModel = require("../models/modulverwaltungmodels");
+const logger = require("../utils/logger");
 
 function sendError(res, status, code, message) {
   return res.status(status).json({ error: { code, message } });
 }
 
 function handleDatabaseError(res, error) {
-  console.error("Module database operation failed:", error);
+  logger.error("Module database operation failed", {
+    code: error.code,
+    message: error.message,
+    stack: error.stack,
+  });
   if (error.code === "ER_DUP_ENTRY") {
     return sendError(
       res,

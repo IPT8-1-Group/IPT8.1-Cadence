@@ -2,11 +2,14 @@ const express = require("express");
 const router = express.Router();
 
 const modulverwaltungController = require("../controllers/modulverwaltung.Controller");
+const logModuleRequest = require("../middlewares/moduleRequestLogger");
 const {
   validateCreateModule,
   validatePatchModule,
   validateLearningObjectives,
 } = require("../middlewares/module.middleware");
+
+router.use(logModuleRequest);
 
 router
   .route("/")
