@@ -8,6 +8,8 @@ import ModuleDetailView from '@/pages/Modules/ModuleDetailView.vue'
 import RegistrationRequestsView from '@/pages/Admin/RegistrationRequestsView.vue'
 import UsersView from '@/pages/Admin/UsersView.vue'
 import NotFoundView from '@/pages/NotFoundView.vue'
+import DetailedPlanningView from '@/pages/Courses/DetailedPlanningView.vue'
+import OutlinePlanningView from '@/pages/Courses/OutlinePlanningView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -16,49 +18,61 @@ const router = createRouter({
       name: 'Landingpage',
       path: '/',
       component: LandingView,
-      meta: { requiresAuth: false }
+      meta: { requiresAuth: false },
     },
     {
       name: 'Login',
       path: '/login',
       component: LoginView,
-      meta: { requiresAuth: false }
+      meta: { requiresAuth: false },
     },
     {
       name: 'Register',
       path: '/register',
       component: RegisterRequestView,
-      meta: { requiresAuth: false }
+      meta: { requiresAuth: false },
     },
     {
       name: 'Dashboard',
       path: '/dashboard',
       component: DashboardView,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true },
     },
     {
       name: 'Modules',
       path: '/modules',
       component: ModulesView,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true },
     },
     {
       name: 'ModuleDetail',
       path: '/moduledetail',
       component: ModuleDetailView,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true },
     },
     {
       name: 'RegistrationRequest',
       path: '/registrationrequest',
       component: RegistrationRequestsView,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true },
     },
     {
       name: 'Users',
       path: '/users',
       component: UsersView,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true },
+    },
+    {
+      name: 'DetailedPlanning',
+      path: '/detailedplanning',
+      component: DetailedPlanningView,
+      meta: { requiresAuth: true },
+    },
+    {
+      name: 'OutlinePlanning',
+      path: '/outlinePlanning',
+      component: OutlinePlanningView,
+      meta: { requiresAuth: true },
     },
     {
       path: '/:pathMatch(.*)*',
