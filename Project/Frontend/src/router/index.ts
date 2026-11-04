@@ -10,6 +10,7 @@ import UsersView from '@/pages/Admin/UsersView.vue'
 import NotFoundView from '@/pages/NotFoundView.vue'
 import DetailedPlanningView from '@/pages/Courses/DetailedPlanningView.vue'
 import OutlinePlanningView from '@/pages/Courses/OutlinePlanningView.vue'
+import Settings from '@/pages/Settings/SettingsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -73,6 +74,12 @@ const router = createRouter({
       path: '/outlinePlanning',
       component: OutlinePlanningView,
       meta: { requiresAuth: true },
+    },
+    {
+      name: 'Settings',
+      path: '/settings',
+      component: Settings,
+      meta: { requiresAuth: true }
     },
     {
       path: '/:pathMatch(.*)*',
