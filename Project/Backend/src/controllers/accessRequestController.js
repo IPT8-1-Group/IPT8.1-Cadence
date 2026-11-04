@@ -3,10 +3,11 @@ const authService = require('../services/authService');
 const { isValidEmail } = require('../utils/validators');
 
 async function submitRequest(req, res) {
-  const { firstName, lastName, email, institution, function: func, additionalInformation } = req.body;
+  const { firstName, lastName, email, institution, additionalInformation } = req.body;
+  const jobTitle = (req.body.jobTitle || req.body.job_title || req.body.funktion || req.body.function || '').trim();
 
-  if (!firstName || !lastName || !email || !institution || !func) {
-    return res.status(400).json({ error: 'Vorname, Nachname, E-Mail, Institution und Funktion sind erforderlich' });
+  if (!firstName || !lastName || !email || !institution || !jobTitle) {
+    return res.status(400).json({ error: 'Vorname, Nachname, E-Mail, Institution und Funktion/Berufsbezeichnung sind erforderlich' });
   }
 
   if (!isValidEmail(email)) {
@@ -29,7 +30,7 @@ async function submitRequest(req, res) {
       lastName: lastName.trim(),
       email: email.trim(),
       institution: institution.trim(),
-      func: func.trim(),
+      jobTitle,
       additionalInfo: additionalInformation ? additionalInformation.trim() : '',
     });
 
@@ -76,7 +77,7 @@ async function approveRequest(req, res) {
     firstName: request.first_name,
     lastName: request.last_name,
     institution: request.institution,
-    func: request.function,
+    jobTitle: request.job_title || request.jobTitle || request.function || '',
   });
 
   // Einmaligen zeitlich begrenzten Token zum Passwort-Setzen erstellen
@@ -112,4 +113,3 @@ module.exports = {
   approveRequest,
   rejectRequest,
 };
-

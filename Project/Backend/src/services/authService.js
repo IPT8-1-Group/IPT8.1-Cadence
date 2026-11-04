@@ -8,9 +8,10 @@ function hashPassword(password) {
   return crypto.createHash('sha256').update(password).digest('hex');
 }
 
-async function registerUser({ email, password, role = 'user', firstName = '', lastName = '', institution = '', func = '' }) {
+async function registerUser({ email, password, role = 'user', firstName = '', lastName = '', institution = '', jobTitle = '', func = '' }) {
   const hash = hashPassword(password);
-  return authModel.createUser(email, hash, role, firstName, lastName, institution, func);
+  const title = jobTitle || func;
+  return authModel.createUser(email, hash, role, firstName, lastName, institution, title);
 }
 
 async function loginUser(email, password) {
@@ -54,7 +55,8 @@ async function loginUser(email, password) {
       firstName: user.first_name,
       lastName: user.last_name,
       institution: user.institution,
-      function: user.function,
+      jobTitle: user.job_title,
+      funktion: user.job_title,
       active: !!user.active,
     },
   };

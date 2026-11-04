@@ -22,7 +22,8 @@ async function getUserById(req, res) {
 
 async function updateUser(req, res) {
   const { id } = req.params;
-  const { role, active, firstName, lastName, institution, function: func } = req.body;
+  const { role, active, firstName, lastName, institution } = req.body;
+  const jobTitle = req.body.jobTitle !== undefined ? req.body.jobTitle : (req.body.job_title !== undefined ? req.body.job_title : (req.body.funktion !== undefined ? req.body.funktion : req.body.function));
 
   const user = await authModel.findUserById(id);
   if (!user) {
@@ -40,7 +41,7 @@ async function updateUser(req, res) {
     firstName,
     lastName,
     institution,
-    function: func,
+    jobTitle,
   });
 
   res.json(updated);

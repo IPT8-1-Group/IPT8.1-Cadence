@@ -15,7 +15,7 @@ async function setupAdmin() {
     const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
 
     await pool.query(
-      'INSERT INTO `User` (email, password_hash, role, first_name, last_name, institution, `function`, active) VALUES (?, ?, ?, ?, ?, ?, ?, 1)',
+      'INSERT INTO `User` (email, password_hash, role, first_name, last_name, institution, job_title, active) VALUES (?, ?, ?, ?, ?, ?, ?, 1)',
       [email, passwordHash, 'admin', 'System', 'Admin', 'Schule', 'Leitung']
     );
 

@@ -20,7 +20,7 @@ async function requireAuth(req, res, next) {
       try {
         const decoded = jwt.verify(token, JWT_SECRET);
         const [users] = await pool.query(
-          'SELECT id, email, role, active, first_name AS firstName, last_name AS lastName, institution, `function`, created_at AS createdAt FROM `User` WHERE id = ?',
+          'SELECT id, email, role, active, first_name AS firstName, last_name AS lastName, institution, job_title AS jobTitle, created_at AS createdAt FROM `User` WHERE id = ?',
           [decoded.id]
         );
         const user = users[0];
@@ -30,6 +30,7 @@ async function requireAuth(req, res, next) {
           return res.status(401).json({ error: 'Sitzung ungültig oder Konto deaktiviert' });
         }
 
+        user.funktion = user.jobTitle;
         req.user = user;
         return next();
       } catch {
@@ -46,7 +47,7 @@ async function requireAuth(req, res, next) {
       const validToken = await authService.verifyToken(email, privateKey);
       if (validToken) {
         const [users] = await pool.query(
-          'SELECT id, email, role, active, first_name AS firstName, last_name AS lastName, institution, `function`, created_at AS createdAt FROM `User` WHERE email = ?',
+          'SELECT id, email, role, active, first_name AS firstName, last_name AS lastName, institution, job_title AS jobTitle, created_at AS createdAt FROM `User` WHERE email = ?',
           [email]
         );
         const user = users[0];
@@ -55,6 +56,7 @@ async function requireAuth(req, res, next) {
           return res.status(401).json({ error: 'Konto deaktiviert' });
         }
 
+        user.funktion = user.jobTitle;
         req.user = user;
         return next();
       }

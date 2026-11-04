@@ -3,7 +3,8 @@ const authModel = require('../models/authModel');
 const { isValidEmail, isValidPassword } = require('../utils/validators');
 
 async function register(req, res) {
-  const { email, password, role, firstName, lastName, institution, function: func } = req.body;
+  const { email, password, role, firstName, lastName, institution } = req.body;
+  const jobTitle = req.body.jobTitle || req.body.job_title || req.body.funktion || req.body.function || '';
 
   if (!email || !isValidEmail(email)) {
     return res.status(400).json({ error: 'Gültige E-Mail-Adresse erforderlich' });
@@ -28,7 +29,7 @@ async function register(req, res) {
       firstName: firstName || '',
       lastName: lastName || '',
       institution: institution || '',
-      func: func || '',
+      jobTitle,
     });
     res.status(201).json({ message: 'Benutzer erfolgreich erstellt', id });
   } catch {
