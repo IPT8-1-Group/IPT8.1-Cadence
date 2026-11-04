@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import Svg from '@/components/ui/Svg.vue'
+import Logo from '@/components/ui/Logo.vue'
 </script>
 
 <template>
@@ -10,7 +11,7 @@ import Svg from '@/components/ui/Svg.vue'
       to="/dashboard"
       class="border-none! col-span-1 flex items-center justify-center min-w-[30px] h-full"
     >
-      <img src="../../assets/images/cadence-logo.svg" alt="logo" class="w-[120px]" />
+      <Logo class="w-[120px] min-w-[100px]"></Logo>
     </RouterLink>
     <div class="col-span-5 flex items-center justify-start gap-1">
       <RouterLink
