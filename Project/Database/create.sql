@@ -90,6 +90,7 @@ CREATE TABLE DetailedPlanning(
     topic VARCHAR(100) NOT NULL,
     `desc` VARCHAR(255),
     dur_min INT NOT NULL DEFAULT 45,
+    position INT NOT NULL DEFAULT 0,
     fk_course_day INT NOT NULL,
     fk_outline_planning INT,
 

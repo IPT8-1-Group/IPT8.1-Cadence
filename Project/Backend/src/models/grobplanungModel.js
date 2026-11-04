@@ -31,10 +31,16 @@ async function deleteOutline(id) {
   await pool.query('DELETE FROM OutlinePlanning WHERE id = ?', [id]);
 }
 
+async function moveOutline(id, targetCourseId) {
+  await pool.query('UPDATE OutlinePlanning SET fk_course = ? WHERE id = ?', [targetCourseId, id]);
+  return getOutlineById(id);
+}
+
 module.exports = {
   getAllOutlines,
   getOutlineById,
   createOutline,
   updateOutline,
   deleteOutline,
+  moveOutline,
 };

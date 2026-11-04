@@ -5,6 +5,7 @@ const accessRequestRoutes = require('./routes/accessRequestRoutes');
 const modulverwaltungRoutes = require('./routes/modulverwaltungRoutes');
 const kursRoutes = require('./routes/kursRoutes');
 const grobplanungRoutes = require('./routes/grobplanungRoutes');
+const feinplanungRoutes = require('./routes/feinplanungRoutes');
 const { requireAuth } = require('./middlewares/authMiddleware');
 const errorHandler = require('./middlewares/errohandling.middeleware');
 
@@ -43,6 +44,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/modules', requireAuth, modulverwaltungRoutes);
 app.use('/api/courses', requireAuth, kursRoutes);
 app.use('/api/grobplanung', requireAuth, grobplanungRoutes);
+app.use('/api/feinplanung', requireAuth, feinplanungRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
