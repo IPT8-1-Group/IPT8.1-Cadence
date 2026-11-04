@@ -18,3 +18,4 @@ router.post('/access-requests/:id/approve', accessRequestController.approveReque
 router.post('/access-requests/:id/reject', accessRequestController.rejectRequest);
 
 module.exports = router;
+

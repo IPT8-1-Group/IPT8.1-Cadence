@@ -1,4 +1,6 @@
 const express = require('express');
+const path = require('path');
+const fs = require('fs');
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const accessRequestRoutes = require('./routes/accessRequestRoutes');
@@ -45,6 +47,18 @@ app.use('/api/modules', requireAuth, modulverwaltungRoutes);
 app.use('/api/courses', requireAuth, kursRoutes);
 app.use('/api/grobplanung', requireAuth, grobplanungRoutes);
 app.use('/api/feinplanung', requireAuth, feinplanungRoutes);
+
+// Serve built frontend (only if it exists, so Docker/dev still works)
+const publicDir = path.join(__dirname, '../public');
+if (fs.existsSync(path.join(publicDir, 'index.html'))) {
+  app.use(express.static(publicDir));
+
+  // SPA fallback: any GET that isn't an API call returns index.html
+  app.use((req, res, next) => {
+    if (req.method !== 'GET' || req.path.startsWith('/api')) return next();
+    res.sendFile(path.join(publicDir, 'index.html'));
+  });
+}
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });

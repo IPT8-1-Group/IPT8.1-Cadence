@@ -7,3 +7,4 @@ const { requestLimiter } = require('../middlewares/rateLimiter');
 router.post('/', requestLimiter, accessRequestController.submitRequest);
 
 module.exports = router;
+

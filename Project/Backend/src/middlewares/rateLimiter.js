@@ -32,3 +32,4 @@ module.exports = {
   loginLimiter: createRateLimiter(10, 60 * 1000),
   requestLimiter: createRateLimiter(10, 60 * 1000),
 };
+
