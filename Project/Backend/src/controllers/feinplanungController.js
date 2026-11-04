@@ -3,8 +3,11 @@ const feinplanungModel = require('../models/feinplanungModel');
 async function getFeinplanungen(req, res) {
   try {
     const dayId = req.query.dayId || req.query.fk_course_day;
-    const entries = await feinplanungModel.getAllFeinplanungen(dayId);
-    res.json(entries);
+    const result = await feinplanungModel.getAllFeinplanungen(dayId);
+    if (dayId && !result) {
+      return res.status(404).json({ error: 'Kurstag nicht gefunden' });
+    }
+    res.json(result);
   } catch {
     res.status(500).json({ error: 'Fehler beim Laden der Feinplanung' });
   }
@@ -23,48 +26,54 @@ async function getFeinplanung(req, res) {
 }
 
 async function createFeinplanung(req, res) {
-  const { topic, desc, dur_min, fk_course_day, dayId, fk_outline_planning, outlineId } = req.body;
+  const { topic, desc, dur_min, duration, fk_course_day, dayId, fk_outline_planning, outlineId } = req.body;
   const targetDay = fk_course_day || dayId;
   const targetOutline = fk_outline_planning !== undefined ? fk_outline_planning : outlineId;
+  const minutes = Number(dur_min || duration || 45);
 
   if (!topic || !targetDay) {
     return res.status(400).json({ error: 'topic und fk_course_day sind erforderlich' });
   }
+  if (isNaN(minutes) || minutes <= 0) {
+    return res.status(400).json({ error: 'dur_min muss eine positive Zahl sein' });
+  }
 
   try {
-    const id = await feinplanungModel.createFeinplanung(
+    const created = await feinplanungModel.createFeinplanung(
       topic,
       desc || null,
-      dur_min || 45,
+      minutes,
       targetDay,
       targetOutline || null
     );
-    res.status(201).json({
-      id,
-      topic,
-      desc: desc || null,
-      dur_min: dur_min || 45,
-      fk_course_day: targetDay,
-      fk_outline_planning: targetOutline || null,
-    });
+    if (created.error === 'DAY_NOT_FOUND') {
+      return res.status(404).json({ error: 'Kurstag nicht gefunden' });
+    }
+    const newEntry = await feinplanungModel.getFeinplanungById(created.id);
+    res.status(201).json(newEntry);
   } catch {
     res.status(500).json({ error: 'Fehler beim Erstellen des Eintrags' });
   }
 }
 
 async function updateFeinplanung(req, res) {
-  const { topic, desc, dur_min, fk_course_day, dayId, fk_outline_planning, outlineId } = req.body;
+  const { topic, desc, dur_min, duration, fk_course_day, dayId, fk_outline_planning, outlineId } = req.body;
   try {
     const current = await feinplanungModel.getFeinplanungById(req.params.id);
     if (!current) {
       return res.status(404).json({ error: 'Eintrag nicht gefunden' });
     }
 
+    const minutes = dur_min !== undefined || duration !== undefined ? Number(dur_min || duration) : current.dur_min;
+    if (isNaN(minutes) || minutes <= 0) {
+      return res.status(400).json({ error: 'dur_min muss eine positive Zahl sein' });
+    }
+
     const updated = await feinplanungModel.updateFeinplanung(
       req.params.id,
       topic !== undefined ? topic : current.topic,
       desc !== undefined ? desc : current.desc,
-      dur_min !== undefined ? dur_min : current.dur_min,
+      minutes,
       (fk_course_day || dayId) || current.fk_course_day,
       fk_outline_planning !== undefined ? fk_outline_planning : (outlineId !== undefined ? outlineId : current.fk_outline_planning)
     );
@@ -94,13 +103,35 @@ async function moveFeinplanung(req, res) {
   }
 
   try {
-    const updated = await feinplanungModel.moveFeinplanung(req.params.id, newDayId, newOutlineId);
-    if (!updated) {
+    const moved = await feinplanungModel.moveFeinplanung(req.params.id, newDayId, newOutlineId);
+    if (!moved) {
       return res.status(404).json({ error: 'Eintrag nicht gefunden' });
     }
-    res.json(updated);
+    if (moved.error === 'DAY_NOT_FOUND') {
+      return res.status(404).json({ error: 'Ziel-Kurstag nicht gefunden' });
+    }
+    res.json(moved);
   } catch {
     res.status(500).json({ error: 'Fehler beim Verschieben' });
+  }
+}
+
+async function reorderFeinplanung(req, res) {
+  const { dayId, fk_course_day, orderedIds } = req.body;
+  const targetDay = dayId || fk_course_day;
+
+  if (!targetDay || !Array.isArray(orderedIds)) {
+    return res.status(400).json({ error: 'dayId und orderedIds (Array) sind erforderlich' });
+  }
+
+  try {
+    const result = await feinplanungModel.reorderFeinplanung(targetDay, orderedIds);
+    if (result && result.error === 'DAY_NOT_FOUND') {
+      return res.status(404).json({ error: 'Kurstag nicht gefunden' });
+    }
+    res.json(result);
+  } catch {
+    res.status(500).json({ error: 'Fehler beim Umsortieren' });
   }
 }
 
@@ -111,5 +142,5 @@ module.exports = {
   updateFeinplanung,
   deleteFeinplanung,
   moveFeinplanung,
+  reorderFeinplanung,
 };
-
