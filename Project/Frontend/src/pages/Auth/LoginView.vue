@@ -4,6 +4,7 @@ import { ref } from 'vue'
 const showPassword = ref(false)
 </script>
 <template>
+  
   <section class="flex min-h-screen items-center justify-center bg-[var(--background-color)] px-6 py-12">
     <div class="w-full max-w-md">
     
@@ -48,4 +49,9 @@ const showPassword = ref(false)
       </form>
     </div>
   </section>
+  <img
+        src="../../assets/images/bg-register.png"
+        alt="background image register page"
+        class="fixed inset-x-0 bottom-0 -z-1"
+      />
 </template>
