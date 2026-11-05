@@ -3,6 +3,7 @@ import Svg from '@/components/ui/Svg.vue'
 
 const props = defineProps<{
   type: string
+  required: boolean
   placeholder: string
   label: string
 }>()
@@ -16,6 +17,7 @@ const props = defineProps<{
       <slot></slot>
     </Svg>
     <input
+      :required="props.required"
       :aria-label="props.label"
       :type="props.type"
       :placeholder="props.placeholder"
