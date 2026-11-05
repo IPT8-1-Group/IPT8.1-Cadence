@@ -8,7 +8,7 @@ const showPassword = ref(false)
 <template>
   <header class="fixed top-0 left-0 px-6 py-8 sm:px-10">
     <RouterLink
-      to="/dashboard"
+      to="/"
       class="inline-block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--secondary-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background-color)]"
     >
       <Logo class="w-[120px]"></Logo>
