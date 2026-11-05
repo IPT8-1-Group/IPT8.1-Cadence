@@ -133,22 +133,44 @@ import DividerVertical from '@/components/ui/DividerVertical.vue'
           erhälst eine E-Mail mit deinen Zugangsdaten.
         </p>
 
-        <form class="flex flex-col w-full gap-3">
+        <form class="flex flex-col w-full gap-3" @submit.prevent="">
           <div class="w-full flex items-center justify-between gap-2">
-            <InputComp type="text" placeholder="Vorname" label="vorname" class="w-full">
+            <InputComp
+              :required="true"
+              type="text"
+              placeholder="Vorname"
+              label="vorname"
+              class="w-full"
+            >
               <i class="fa-regular fa-user"></i>
             </InputComp>
 
-            <InputComp type="text" placeholder="Nachname" label="nachname" class="w-full">
+            <InputComp
+              :required="true"
+              type="text"
+              placeholder="Nachname"
+              label="nachname"
+              class="w-full"
+            >
               <i class="fa-regular fa-user"></i>
             </InputComp>
           </div>
 
-          <InputComp type="email" placeholder="E-Mail-Adresse" label="email-adresse">
+          <InputComp
+            :required="true"
+            type="email"
+            placeholder="E-Mail-Adresse"
+            label="email-adresse"
+          >
             <i class="fa-regular fa-envelope"></i>
           </InputComp>
 
-          <InputComp type="text" placeholder="Schule / Institution" label="schule oder institution">
+          <InputComp
+            :required="true"
+            type="text"
+            placeholder="Schule / Institution"
+            label="schule oder institution"
+          >
             <i class="fa-solid fa-school"></i>
           </InputComp>
 
@@ -160,6 +182,7 @@ import DividerVertical from '@/components/ui/DividerVertical.vue'
             </Svg>
 
             <select
+              required
               name="function"
               id="function"
               class="w-full outline-none text-sm cursor-pointer"
@@ -187,7 +210,6 @@ import DividerVertical from '@/components/ui/DividerVertical.vue'
 
           <button
             type="submit"
-            @click.prevent
             class="cursor-pointer lift-hover flex items-center justify-center gap-3 w-full bg-[var(--primary-color)] text-[var(--text-color-white)] px-4 py-3 rounded-lg shadow-xl"
           >
             Anfrage senden
