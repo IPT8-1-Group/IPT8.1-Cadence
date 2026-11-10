@@ -1,8 +1,8 @@
 import { useAuthStore } from '@/stores/authStore.ts'
 
-const API_URL = `${import.meta.env.VITE_API_URL}/api`
+const API_URL = `${import.meta.env.VITE_API_URL}`
 
-const AUTH_ENDPOINTS = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/logout']
+const AUTH_ENDPOINTS = ['/login', '/register', '/refresh', '/logout']
 
 export async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const authStore = useAuthStore()
@@ -11,7 +11,6 @@ export async function apiFetch<T>(endpoint: string, options?: RequestInit): Prom
   async function sendRequest(): Promise<Response> {
     return await fetch(`${API_URL}${endpoint}`, {
       ...options,
-      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         ...(options?.headers || {}),
