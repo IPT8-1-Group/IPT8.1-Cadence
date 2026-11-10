@@ -1,7 +1,7 @@
-CREATE DATABASE IF NOT EXISTS stundenplaner
-    CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;
+--CREATE DATABASE IF NOT EXISTS stundenplaner
+--    CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-USE stundenplaner;
+--USE stundenplaner;
 
 CREATE TABLE `User`(
     id INT AUTO_INCREMENT PRIMARY KEY,
