@@ -2,8 +2,27 @@
 import { ref } from 'vue'
 import Logo from '@/components/ui/Logo.vue'
 import Svg from '@/components/ui/Svg.vue'
+import { useAuthStore } from '@/stores/authStore.ts'
+import { useRouter } from 'vue-router'
 
 const showPassword = ref(false)
+const error = ref<string | null>(null)
+
+const password = ref<string>('')
+const email = ref<string>('')
+
+const authStore = useAuthStore()
+
+const router = useRouter()
+async function sendLogin() {
+  try {
+    const valid = await authStore.login(email.value, password.value)
+    if (valid) return router.push('/dashboard')
+    error.value = authStore.error
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Anmeldung fehlgeschlagen'
+  }
+}
 </script>
 <template>
   <header class="fixed top-0 left-0 px-6 py-8 sm:px-10">
@@ -24,7 +43,7 @@ const showPassword = ref(false)
 
     <div class="w-full max-w-md">
       <form
-        @submit.prevent
+        @submit.prevent="sendLogin"
         class="space-y-5 rounded-2xl border border-[var(--border-color)] bg-[var(--surface-color)] p-6 shadow-lg sm:p-8 -z-1"
         action="#"
       >
@@ -36,6 +55,7 @@ const showPassword = ref(false)
         </div>
         <div class="relative">
           <input
+            v-model="email"
             type="email"
             name="email"
             id="email"
@@ -51,6 +71,7 @@ const showPassword = ref(false)
         <div>
           <div class="relative">
             <input
+              v-model="password"
               :type="showPassword ? 'text' : 'password'"
               name="password"
               id="password"
@@ -86,6 +107,8 @@ const showPassword = ref(false)
             <i class="fa-solid fa-angle-right"></i>
           </Svg>
         </button>
+
+        <p v-if="error" class="text-[var(--error-color)] text-xs my-2">{{ error?.trim() }}</p>
       </form>
     </div>
   </section>
