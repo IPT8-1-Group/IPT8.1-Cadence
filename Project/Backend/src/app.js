@@ -7,6 +7,9 @@ const feinplanungRoutes = require('./routes/feinplanungRoutes');
 
 const app = express();
 
+const cors = require('cors')
+app.use(cors({ origin: 'http://localhost:5173' }))
+
 app.use(express.json());
 app.use('/', authRoutes);
 app.use('/api/modules', modulverwaltungRoutes);
