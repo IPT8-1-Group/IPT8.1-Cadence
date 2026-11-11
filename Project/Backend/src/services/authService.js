@@ -15,9 +15,6 @@ async function registerUser({ email, password, role = 'user', firstName = '', la
 }
 
 async function loginUser(email, password) {
-  // 1 Sekunde Verzoegerung gegen Brute-Force
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
   const user = await authModel.findUserByEmail(email);
   if (!user || !user.active) {
     return null;
@@ -28,7 +25,6 @@ async function loginUser(email, password) {
     return null;
   }
 
-  // RSA-Schluesselpaar fuer bestehende Auth-Funktionalitaet
   const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
     modulusLength: 2048,
     publicKeyEncoding: { type: 'spki', format: 'pem' },
@@ -38,7 +34,6 @@ async function loginUser(email, password) {
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
   await authModel.createToken(user.id, publicKey, expiresAt);
 
-  // JWT Token fuer Standard-Auth
   const token = jwt.sign(
     { id: user.id, email: user.email, role: user.role },
     JWT_SECRET,
