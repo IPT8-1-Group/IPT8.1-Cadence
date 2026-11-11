@@ -15,7 +15,7 @@ async function listModules({
     updatedAt: "m.id",
   };
   const [rows] = await pool.query(
-    `SELECT m.id, m.code, m.title, m.\`desc\` AS description, NULL AS createdAt, NULL AS updatedAt, COUNT(c.id) AS courseCount  FROM Module LEFT JOIN Course c ON c.fk_module_id = m.id  ${where}  GROUP BY m.id
+    `SELECT m.id, m.code, m.title, m.\`desc\` AS description, NULL AS createdAt, NULL AS updatedAt, COUNT(c.id) AS courseCount  FROM Module m LEFT JOIN Course c ON c.fk_module_id = m.id  ${where}  GROUP BY m.id
          ORDER BY ${orderColumns[sortBy]} ${sortDirection}, m.id ${sortDirection}
          LIMIT ? OFFSET ?`,
     [...searchParams, pageSize, offset],

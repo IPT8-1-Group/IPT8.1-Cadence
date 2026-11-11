@@ -208,12 +208,12 @@ Content-Type: application/json
   "lastName": "Muster",
   "email": "anna.muster@schule.ch",
   "institution": "Berufsfachschule",
-  "function": "Lehrperson",
+  "jobTitle": "Lehrperson",
   "additionalInformation": "Ich möchte meine Kurse mit Cadence planen."
 }
 ```
 
-**Regeln:** Alle Felder ausser `additionalInformation` sind erforderlich. Fehlende Zusatzinformationen werden als leerer String gespeichert. `function` ist die berufliche Funktion und vergibt keine Rolle. Die Anfrage erhält `pending`; es entsteht noch kein Konto. Doppelte offene Anfragen werden nicht nochmals angelegt. Bereits registrierte oder abgelehnte Adressen erhalten dieselbe neutrale Antwort.
+**Regeln:** Alle Felder ausser `additionalInformation` sind erforderlich. Fehlende Zusatzinformationen werden als leerer String gespeichert. `jobTitle` (oder `funktion`) ist die berufliche Funktion und vergibt keine Berechtigungsrolle (`function` wird aus Kompatibilitätsgründen ebenfalls akzeptiert). Die Anfrage erhält `pending`; es entsteht noch kein Konto. Doppelte offene Anfragen werden nicht nochmals angelegt. Bereits registrierte oder abgelehnte Adressen erhalten dieselbe neutrale Antwort.
 
 **Antwort:** `202 Accepted` mit `data.message`: `Die Anfrage wurde entgegengenommen.`
 
