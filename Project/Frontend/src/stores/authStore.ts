@@ -14,6 +14,8 @@ import {
 import { useRequestState } from '@/stores/requestState.ts'
 import type { RegisterRequest, User } from '@/types/auth.ts'
 
+const TOKEN_KEY = 'cadence.jwt'
+
 export const useAuthStore = defineStore('auth', () => {
   const { loading, error, runRequest, loadData } = useRequestState()
   const user = ref<User | null>(null)
@@ -25,11 +27,35 @@ export const useAuthStore = defineStore('auth', () => {
   let privateKey: string | null = null
   let sessionVersion = 0
 
+  async function restoreSession() {
+    const savedToken = sessionStorage.getItem(TOKEN_KEY)
+    if (!savedToken || token.value) return
+
+    const version = sessionVersion
+
+    await runRequest(async () => {
+      try {
+        const { user: profile } = await getMeApi(savedToken)
+        if (version !== sessionVersion) return
+
+        user.value = profile
+        token.value = savedToken
+      } catch (cause) {
+        if (version === sessionVersion && cause instanceof ApiError && cause.status === 401) {
+          clearSession()
+        }
+
+        throw cause
+      }
+    }, 'Sitzung konnte nicht wiederhergestellt werden.')
+  }
+
   function clearSession() {
     sessionVersion += 1
     privateKey = null
     token.value = null
     user.value = null
+    sessionStorage.removeItem(TOKEN_KEY)
   }
 
   function invalidateSession(requestToken: string) {
@@ -46,6 +72,7 @@ export const useAuthStore = defineStore('auth', () => {
       privateKey = data.private_key
       user.value = data.user
       token.value = data.token
+      sessionStorage.setItem(TOKEN_KEY, data.token)
       return true
     }, 'Anmeldung fehlgeschlagen.')
 
@@ -53,7 +80,11 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function getMe() {
-    return loadData(user, async () => (await getMeApi()).user, 'Profil konnte nicht geladen werden.')
+    return loadData(
+      user,
+      async () => (await getMeApi()).user,
+      'Profil konnte nicht geladen werden.',
+    )
   }
 
   function register(data: RegisterRequest | string, password = '') {
@@ -61,7 +92,10 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function setPassword(resetToken: string, password: string) {
-    return runRequest(() => setPasswordApi(resetToken, password), 'Passwort konnte nicht gesetzt werden.')
+    return runRequest(
+      () => setPasswordApi(resetToken, password),
+      'Passwort konnte nicht gesetzt werden.',
+    )
   }
 
   function changePassword(oldPassword: string, newPassword: string) {
@@ -87,23 +121,46 @@ export const useAuthStore = defineStore('auth', () => {
     return await checkRsaSession(refreshApi, 'RSA-Sitzung konnte nicht verlängert werden.')
   }
 
-  async function logout() {
+  async function logout(): Promise<boolean> {
     const sessionEmail = email.value
     const sessionKey = privateKey
-    clearSession()
-    if (!sessionEmail || !sessionKey) return
+    const version = sessionVersion
 
-    return await runRequest(async () => {
-      try {
-        return await logoutApi(sessionEmail, sessionKey)
-      } catch (cause) {
-        if (!(cause instanceof ApiError) || cause.status !== 401) throw cause
+    const success = await runRequest(async () => {
+      if (sessionEmail && sessionKey) {
+        try {
+          await logoutApi(sessionEmail, sessionKey)
+        } catch (cause) {
+          if (!(cause instanceof ApiError) || cause.status !== 401) throw cause
+        }
       }
+
+      if (version !== sessionVersion) return false
+
+      clearSession()
+      return true
     }, 'Abmeldung fehlgeschlagen.')
+
+    return success === true
   }
 
   return {
-    loading, error, user, token, email, isAuth, isAdmin,
-    login, logout, verify, refresh, invalidateSession, getMe, register, setPassword, changePassword,
+    loading,
+    error,
+    user,
+    token,
+    email,
+    isAuth,
+    isAdmin,
+    login,
+    logout,
+    verify,
+    refresh,
+    invalidateSession,
+    getMe,
+    register,
+    setPassword,
+    changePassword,
+    restoreSession,
   }
 })
