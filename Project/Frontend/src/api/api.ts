@@ -1,43 +1,55 @@
 import { useAuthStore } from '@/stores/authStore.ts'
 
-const API_URL = `${import.meta.env.VITE_API_URL}`
+const baseUrl = (import.meta.env.VITE_API_URL ?? '').trim().replace(/\/+$/, '')
+const API_URL = baseUrl.replace(/\/api(?:\/auth)?$/, '') + '/api'
 
-const AUTH_ENDPOINTS = ['/login', '/register', '/refresh', '/logout']
+type ApiRequestOptions = RequestInit & {
+  authenticated?: boolean
+}
 
-export async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const authStore = useAuthStore()
-  const isAuthEndpoint = AUTH_ENDPOINTS.includes(endpoint)
+export class ApiError extends Error {
+  constructor(public readonly status: number, message: string) {
+    super(message)
+    this.name = 'ApiError'
+  }
+}
 
-  async function sendRequest(): Promise<Response> {
-    return await fetch(`${API_URL}${endpoint}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(options?.headers || {}),
-        ...(authStore.token && !isAuthEndpoint
-          ? { Authorization: `Bearer ${authStore.token}` }
-          : {}),
-      },
-    })
+async function getErrorMessage(response: Response) {
+  const body = await response.text()
+
+  try {
+    const data = JSON.parse(body)
+    const message = data?.error?.message ?? data?.error ?? data?.message
+    if (typeof message === 'string' && message) return message
+  } catch {
+    if (body && !response.headers.get('Content-Type')?.includes('text/html')) return body
   }
 
-  let res = await sendRequest()
+  return `Anfrage fehlgeschlagen (HTTP ${response.status}).`
+}
 
-  if ([401, 403].includes(res.status) && !isAuthEndpoint) {
-    try {
-      await authStore.refresh()
-    } catch {
-      await authStore.logout()
-      throw new Error('Session abgelaufen. Bitte erneut einloggen.')
-    }
+export async function apiFetch<T>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> {
+  const { authenticated = true, ...request } = options
+  const authStore = authenticated ? useAuthStore() : null
+  const token = authStore?.token
+  const headers = new Headers(request.headers)
 
-    res = await sendRequest()
+  if (request.body != null && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json')
+  }
+  if (token) headers.set('Authorization', `Bearer ${token}`)
+
+  const response = await fetch(`${API_URL}${endpoint}`, { ...request, headers })
+
+  if (!response.ok) {
+    const message = await getErrorMessage(response)
+    if (response.status === 401 && token) authStore?.invalidateSession(token)
+    throw new ApiError(response.status, message)
   }
 
-  if (!res.ok) {
-    const text = await res.text()
-    throw new Error(`ERROR: ${res.status}: ${text}`)
+  const data = response.status === 204 ? undefined : await response.json()
+  if (authStore && authStore.token !== token) {
+    throw new Error('Die Sitzung hat sich geändert.')
   }
-
-  return res.json() as Promise<T>
+  return data as T
 }
