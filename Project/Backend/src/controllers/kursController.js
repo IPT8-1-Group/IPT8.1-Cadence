@@ -60,10 +60,84 @@ async function deleteCourse(req, res) {
   }
 }
 
+// Kurstage (Course_day)
+async function getCourseDays(req, res) {
+  const courseId = req.params.courseId || req.params.id;
+  try {
+    const days = await kursModel.getDaysByCourseId(courseId);
+    res.json(days);
+  } catch {
+    res.status(500).json({ error: 'Fehler beim Laden der Kurstage' });
+  }
+}
+
+async function getCourseDay(req, res) {
+  const dayId = req.params.dayId || req.params.id;
+  try {
+    const day = await kursModel.getDayById(dayId);
+    if (!day) {
+      return res.status(404).json({ error: 'Kurstag nicht gefunden' });
+    }
+    res.json(day);
+  } catch {
+    res.status(500).json({ error: 'Fehler beim Laden des Kurstags' });
+  }
+}
+
+async function addCourseDay(req, res) {
+  const courseId = req.params.courseId || req.params.id;
+  const { date, startTime, start_time, endTime, end_time } = req.body;
+
+  try {
+    const course = await kursModel.getCourseById(courseId);
+    if (!course) {
+      return res.status(404).json({ error: 'Kurs nicht gefunden' });
+    }
+
+    const day = await kursModel.createDay(
+      courseId,
+      date,
+      startTime || start_time || '08:15:00',
+      endTime || end_time || '16:45:00'
+    );
+    res.status(201).json(day);
+  } catch {
+    res.status(500).json({ error: 'Fehler beim Anlegen des Kurstags' });
+  }
+}
+
+async function updateCourseDay(req, res) {
+  const dayId = req.params.dayId || req.params.id;
+  try {
+    const updated = await kursModel.updateDay(dayId, req.body);
+    if (!updated) {
+      return res.status(404).json({ error: 'Kurstag nicht gefunden' });
+    }
+    res.json(updated);
+  } catch {
+    res.status(500).json({ error: 'Fehler beim Aktualisieren des Kurstags' });
+  }
+}
+
+async function deleteCourseDay(req, res) {
+  const dayId = req.params.dayId || req.params.id;
+  try {
+    await kursModel.deleteDay(dayId);
+    res.status(204).send();
+  } catch {
+    res.status(500).json({ error: 'Fehler beim Löschen des Kurstags' });
+  }
+}
+
 module.exports = {
   getCourses,
   getCourse,
   createCourse,
   updateCourse,
   deleteCourse,
+  getCourseDays,
+  getCourseDay,
+  addCourseDay,
+  updateCourseDay,
+  deleteCourseDay,
 };
