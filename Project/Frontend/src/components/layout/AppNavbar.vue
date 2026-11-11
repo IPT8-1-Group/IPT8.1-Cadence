@@ -5,18 +5,18 @@ import Logo from '@/components/ui/Logo.vue'
 
 <template>
   <nav
-    class="z-999 sticky inset-x-0 top-0 bg-[var(--surface-color)] px-6 py-3 grid grid-cols-8 gap-5 items-center justify-center w-full border border-transparent border-b-[var(--border-color)]"
+    class="z-999 sticky inset-x-0 top-0 bg-[var(--surface-color)] px-3 py-3 md:px-6 grid grid-cols-2 md:grid-cols-8 gap-2 md:gap-5 items-center justify-center w-full border border-transparent border-b-[var(--border-color)]"
   >
     <RouterLink
       to="/dashboard"
-      class="border-none! col-span-1 flex items-center justify-center min-w-[30px] h-full"
+      class="order-1 md:order-none border-none! col-span-1 flex items-center justify-center min-w-[30px] h-full"
     >
       <Logo class="w-[120px] min-w-[100px]"></Logo>
     </RouterLink>
-    <div class="col-span-5 flex items-center justify-start gap-1">
+    <div class="fixed inset-x-0 bottom-0 z-999 order-3 md:static md:order-none col-span-2 md:col-span-5 flex items-center justify-center gap-1 border-t border-[var(--border-color)] bg-[var(--surface-color)] px-3 py-2 md:border-0 md:bg-transparent md:px-0 md:py-0 md:justify-start">
       <RouterLink
         to="/dashboard"
-        class="hover:border-b-[var(--border-color)] transition duration-200 text-[var(--text-color-light)] cursor-pointer px-3 py-2 flex items-center justify-center h-full gap-2 text-sm font-semibold border border-transparent border-b-[3px]"
+        class="hover:border-b-[var(--border-color)] transition duration-200 text-[var(--text-color-light)] cursor-pointer px-3 py-2 flex items-center justify-center h-full gap-2 text-sm font-semibold border border-transparent border-b-[3px]  "
       >
         <Svg class="svg">
           <i class="fa-regular fa-house text-lg"></i>
@@ -35,9 +35,10 @@ import Logo from '@/components/ui/Logo.vue'
       </RouterLink>
     </div>
 
-    <div class="col-span-2 flex items-center justify-end gap-1">
+    <div class="order-2 md:order-none col-span-1 md:col-span-2 flex items-center justify-end gap-1">
       <RouterLink
         to="/settings"
+        aria-label="Einstellungen"
         class="hover:border-[var(--secondary-color)] hover:text-[var(--secondary-color)] transition duration-200 text-[var(--text-color-light)] cursor-pointer px-3 py-2 flex items-center justify-center h-full gap-2 text-sm font-semibold border border-[var(--border-color)] rounded-xl"
       >
         <Svg class="svg">
@@ -47,12 +48,13 @@ import Logo from '@/components/ui/Logo.vue'
 
       <RouterLink
         to="/"
+        aria-label="Abmelden"
         class="hover:border-[var(--secondary-color)] hover:text-[var(--secondary-color)] transition duration-200 text-[var(--text-color-light)] cursor-pointer px-3 py-2 flex items-center justify-center h-full gap-2 text-sm font-semibold border border-[var(--border-color)] rounded-xl"
       >
         <Svg class="svg">
           <i class="fa-solid fa-arrow-right-from-bracket"></i>
         </Svg>
-        <span>Abmelden</span>
+        <span class="hidden sm:inline">Abmelden</span>
       </RouterLink>
     </div>
   </nav>
