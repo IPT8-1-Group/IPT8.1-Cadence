@@ -5,6 +5,7 @@ import SectionComp from '@/components/ui/SectionComp.vue'
 import { useModuleStore } from '@/stores/moduleStore.ts'
 import { onMounted, ref } from 'vue'
 import { getModuleIcon } from '@/utils/moduleIcon.ts'
+import { useRouter } from 'vue-router'
 
 const moduleStore = useModuleStore()
 
@@ -15,6 +16,11 @@ onMounted(async () => {
     await moduleStore.getModules()
   } catch {}
 })
+
+const router = useRouter()
+async function routerToModuleDetailed(id: number) {
+  await router.push(`/moduleDetail/${id}`)
+}
 </script>
 
 <template>
@@ -33,6 +39,7 @@ onMounted(async () => {
       <div
         v-for="module in moduleStore.modulesData?.data"
         :key="module.id"
+        @click="routerToModuleDetailed(module.id)"
         class="hover:shadow-xl lift-hover cursor-pointer shadow-lg col-span-1 w-full flex items-center justify-between gap-3 px-6 py-4 border border-[var(--border-color)] bg-[var(--surface-color)] rounded-2xl"
       >
         <div class="flex items-center justify-center gap-3">
