@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "node src/server.js"
+    "dev": "node src/server.js",
+    "setup-admin": "node src/scripts/setupAdmin.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

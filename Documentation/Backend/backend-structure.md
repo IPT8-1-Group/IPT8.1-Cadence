@@ -609,3 +609,18 @@ Jeder Bereich hat eine eigene Aufgabe:
 | `app.js`      | Backend zusammenführen und starten     |
 
 Die Struktur kann während der Entwicklung erweitert werden, ohne dass die bestehenden Bereiche stark verändert werden müssen.
+
+---
+
+## Eingabevalidierung (E-Mail und Passwort)
+
+Für sicherheitsrelevante Eingaben gelten serverseitig folgende einfache Kriterien:
+
+- **E-Mail**:
+  - Darf nicht leer sein und maximal 100 Zeichen lang sein.
+  - Muss ein gültiges Format aufweisen (`benutzer@domain.tld`).
+
+- **Passwort**:
+  - Mindestens 8 Zeichen lang (maximal 128 Zeichen).
+  - Muss mindestens einen Buchstaben (`a-z` / `A-Z`) und mindestens eine Ziffer (`0-9`) enthalten.
+
