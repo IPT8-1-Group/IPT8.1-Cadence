@@ -13,10 +13,10 @@ import Logo from '@/components/ui/Logo.vue'
     >
       <Logo class="w-[120px] min-w-[100px]"></Logo>
     </RouterLink>
-    <div class="fixed inset-x-0 bottom-0 z-999 order-3 md:static md:order-none col-span-2 md:col-span-5 flex items-center justify-center gap-1 border-t border-[var(--border-color)] bg-[var(--surface-color)] px-3 py-2 md:border-0 md:bg-transparent md:px-0 md:py-0 md:justify-start">
+    <div class="fixed inset-x-0 bottom-0 z-999 order-3 md:static md:order-none col-span-2 md:col-span-5 flex items-center justify-center gap-2 border-t border-[var(--border-color)] bg-[var(--surface-color)] px-3 pt-3 pb-0 md:border-0 md:bg-transparent md:px-0 md:py-0 md:gap-1 md:justify-start">
       <RouterLink
         to="/dashboard"
-        class="hover:border-b-[var(--border-color)] transition duration-200 text-[var(--text-color-light)] cursor-pointer px-3 py-2 flex items-center justify-center h-full gap-2 text-sm font-semibold border border-transparent border-b-[3px]  "
+        class="hover:border-b-[var(--border-color)] transition duration-200 text-[var(--text-color-light)] cursor-pointer px-4 py-3 md:px-3 md:py-2 flex items-center justify-center h-full gap-2 text-base md:text-sm font-semibold border border-transparent border-b-[3px]"
       >
         <Svg class="svg">
           <i class="fa-regular fa-house text-lg"></i>
@@ -26,10 +26,10 @@ import Logo from '@/components/ui/Logo.vue'
 
       <RouterLink
         to="/modules"
-        class="hover:border-b-[var(--border-color)] transition duration-200 text-[var(--text-color-light)] cursor-pointer px-3 py-2 flex items-center justify-center h-full gap-2 text-sm font-semibold border border-transparent border-b-[3px]"
+        class="hover:border-b-[var(--border-color)] transition duration-200 text-[var(--text-color-light)] cursor-pointer px-4 py-3 md:px-3 md:py-2 flex items-center justify-center h-full gap-2 text-base md:text-sm font-semibold border border-transparent border-b-[3px]"
       >
         <Svg class="svg">
-          <i class="fa-solid fa-cubes-stacked"></i>
+          <i class="fa-solid fa-cubes-stacked text-lg"></i>
         </Svg>
         <span>Module</span>
       </RouterLink>

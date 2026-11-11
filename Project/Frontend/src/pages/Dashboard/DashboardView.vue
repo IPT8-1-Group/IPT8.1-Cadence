@@ -7,11 +7,11 @@ import SectionComp from '@/components/ui/SectionComp.vue'
 <template>
   <AppNavbar></AppNavbar>
 
-  <SectionComp>
-    <header class="flex flex-col items-start justify-center gap-3 mx-8 my-8">
-      <span class="subtitle">Übersicht</span>
-      <h1>Stundenplaner Dashboard</h1>
-      <p class="text-[var(--text-color-light)]">
+  <SectionComp >
+    <header class="flex flex-col items-start justify-center gap-3 mx-8 my-8  ">
+      <span class="subtitle w-full sm:text-left  text-center ">Übersicht</span>
+      <h1 class=" sm:text-left  text-center">Stundenplaner Dashboard</h1>
+      <p class="text-[var(--text-color-light)]sm:text-left  text-center">
         Wähle ein Fach oder eine Klasse aus, um die Details zu öffnen.
       </p>
     </header>
