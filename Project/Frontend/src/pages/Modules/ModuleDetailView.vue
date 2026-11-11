@@ -2,6 +2,23 @@
 import AppNavbar from '@/components/layout/AppNavbar.vue'
 import Svg from '@/components/ui/Svg.vue'
 import SectionComp from '@/components/ui/SectionComp.vue'
+import { useModuleStore } from '@/stores/moduleStore.ts'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import type { ModuleDetail, ModuleResponse } from '@/types/module.ts'
+import { getModuleIcon } from '@/utils/moduleIcon.ts'
+
+const moduleStore = useModuleStore()
+
+const route = useRoute()
+const moduleId = computed(() => {
+  return Number(route.params.id)
+})
+
+const moduleData = ref<ModuleDetail | null>(null)
+onMounted(async () => {
+  moduleData.value = (await moduleStore.getModuleById(moduleId.value)) ?? null
+})
 </script>
 
 <template>
@@ -17,13 +34,18 @@ import SectionComp from '@/components/ui/SectionComp.vue'
             <Svg
               class="h-16 w-16 sm:h-20 sm:w-20 lg:h-[102px] lg:w-[108px] shrink-0 rounded-xl bg-[var(--secondary-color-light,#FFF2E0)] text-[var(--secondary-color,#F2A51D)]"
             >
-              <i class="fa-solid fa-book-open text-3xl sm:text-[40px]"></i>
+              <i
+                :class="getModuleIcon(moduleData?.title ?? '')"
+                class="text-3xl sm:text-[40px]"
+              ></i>
             </Svg>
             <div class="min-w-0">
               <span class="block text-sm sm:text-base text-[var(--text-color-light)]"> Modul </span>
-              <h1 class="text-2xl sm:text-3xl font-bold text-[var(--text-color)]">M323 – Python</h1>
+              <h1 class="text-2xl sm:text-3xl font-bold text-[var(--text-color)]">
+                {{ moduleData?.code }} – {{ moduleData?.title }}
+              </h1>
               <p class="mt-1 text-sm sm:text-base text-[var(--text-color-light)]">
-                Programmierung in Python mit Fokus auf praktische Anwendungen.
+                {{ moduleData?.description?.trim().slice(0, 120) }}
               </p>
             </div>
           </div>
@@ -57,28 +79,38 @@ import SectionComp from '@/components/ui/SectionComp.vue'
         >
           <div class="px-5 py-2">
             <span class="block text-[var(--text-color-light)]">Modulnummer</span>
-            <span class="mt-1 block text-sm text-base text-[var(--text-color)]">M323</span>
+            <span class="mt-1 block text-sm text-base text-[var(--text-color)]">{{
+              moduleData?.code
+            }}</span>
           </div>
           <div class="border-l border-[var(--border-color)] px-5 py-2">
             <span class="block text-[var(--text-color-light)]">Titel</span>
-            <span class="mt-1 block text-sm text-base text-[var(--text-color)]">Python</span>
+            <span class="mt-1 block text-sm text-base text-[var(--text-color)]">{{
+              moduleData?.title
+            }}</span>
           </div>
           <div class="border-l border-[var(--border-color)] px-5 py-2">
             <span class="block text-[var(--text-color-light)]">Beschreibung</span>
             <span class="mt-1 block text-sm text-base text-[var(--text-color)]">
-              Programmierung in Python mit Fokus auf praktische Anwendungen.
+              {{ moduleData?.description?.trim().slice(0, 120) }}
             </span>
           </div>
           <div class="border-l border-[var(--border-color)] px-5 py-2">
             <span class="block text-[var(--text-color-light)]">Erstellt am</span>
-            <span class="mt-1 block text-sm text-base text-[var(--text-color)]">12.09.2026</span>
+            <span class="mt-1 block text-sm text-base text-[var(--text-color)]">{{
+              moduleData?.createdAt ?? 'Nicht gesetzt'
+            }}</span>
           </div>
           <div class="border-l border-[var(--border-color)] px-5 py-2">
             <span class="block text-[var(--text-color-light)]">Zuletzt bearbeitet</span>
-            <span class="mt-1 block text-sm text-base text-[var(--text-color)]">18.09.2026</span>
+            <span class="mt-1 block text-sm text-base text-[var(--text-color)]">{{
+              moduleData?.updatedAt ?? 'Nicht gesetzt'
+            }}</span>
           </div>
         </div>
-        <div class="mt-6 flex gap-5 sm:gap-8 overflow-x-auto border-b border-[var(--border-color)]">
+        <div
+          class="overflow-hidden mt-6 flex gap-5 sm:gap-8 overflow-x-auto border-b border-[var(--border-color)]"
+        >
           <button
             type="button"
             class="-mb-px shrink-0 cursor-pointer border-b-[3px] border-[var(--secondary-color,#F2A51D)] px-3 pb-3 text-base font-semibold text-[var(--text-color)]"
@@ -120,7 +152,9 @@ import SectionComp from '@/components/ui/SectionComp.vue'
                 <i class="fa-solid fa-graduation-cap text-xl"></i>
               </Svg>
               <div>
-                <span class="block text-lg font-bold text-[var(--text-color)]">3</span>
+                <span class="block text-lg font-bold text-[var(--text-color)]">{{
+                  moduleData?.statistics.courseCount
+                }}</span>
                 <span class="block text-sm text-[var(--text-color-light)]">Kurse</span>
               </div>
             </div>
@@ -129,7 +163,9 @@ import SectionComp from '@/components/ui/SectionComp.vue'
                 <i class="fa-regular fa-calendar text-xl"></i>
               </Svg>
               <div>
-                <span class="block text-lg font-bold text-[var(--text-color)]">12</span>
+                <span class="block text-lg font-bold text-[var(--text-color)]">{{
+                  moduleData?.statistics.dayCount
+                }}</span>
                 <span class="block text-sm text-[var(--text-color-light)]">
                   Planungstage (gesamt)
                 </span>
@@ -140,7 +176,9 @@ import SectionComp from '@/components/ui/SectionComp.vue'
                 <i class="fa-regular fa-file-lines text-xl"></i>
               </Svg>
               <div>
-                <span class="block text-lg font-bold text-[var(--text-color)]">48</span>
+                <span class="block text-lg font-bold text-[var(--text-color)]">{{
+                  moduleData?.statistics.detailedEntryCount
+                }}</span>
                 <span class="block text-sm text-[var(--text-color-light)]">
                   Unterrichtssequenzen (gesamt)
                 </span>
@@ -148,9 +186,12 @@ import SectionComp from '@/components/ui/SectionComp.vue'
             </div>
           </div>
         </section>
-        <section class="rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] px-5 pb-5" >
+        <section
+          class="rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] px-5 pb-5"
+        >
           <div
-            class="flex min-h-14 items-center justify-between gap-3 border-b border-[var(--border-color)]">
+            class="flex min-h-14 items-center justify-between gap-3 border-b border-[var(--border-color)]"
+          >
             <h2 class="text-lg font-bold text-[var(--text-color)]">Modulbeschreibung</h2>
             <button
               type="button"
@@ -161,11 +202,7 @@ import SectionComp from '@/components/ui/SectionComp.vue'
             </button>
           </div>
           <p class="pt-5 text-sm sm:text-base leading-6 text-[var(--text-color-light)]">
-            In diesem Modul lernen die Teilnehmenden die Programmiersprache Python von Grund auf
-            kennen. Der Fokus liegt auf praktischen Anwendungen, einer verständlichen Einführung in
-            die Syntax sowie der Entwicklung eigener kleiner Projekte. Das Modul bildet die
-            Grundlage für weiterführende Themen wie Datenanalyse, Automatisierung und
-            Webentwicklung.
+            {{ moduleData?.description?.trim().slice(0, 600) }}
           </p>
         </section>
       </div>
@@ -187,25 +224,24 @@ import SectionComp from '@/components/ui/SectionComp.vue'
           </button>
         </div>
         <ul class="space-y-3 pt-4 text-sm sm:text-base leading-6 text-[var(--text-color-light)]">
-          <li class="flex items-start gap-4">
-            <span
-              class="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-[var(--secondary-color,#F2A51D)]"></span> Die Teilnehmenden kennen die grundlegende Syntax von Python.
-          </li>
-          <li class="flex items-start gap-4">
-            <span class="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-[var(--secondary-color,#F2A51D)]"></span>
-            Die Teilnehmenden können einfache Programme selbstständig entwickeln.
-          </li>
-          <li class="flex items-start gap-4">
+          <li
+            v-for="(learningObject, i) in moduleData?.learningObjectives"
+            :key="i"
+            class="flex items-start gap-4"
+          >
             <span
               class="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-[var(--secondary-color,#F2A51D)]"
             ></span>
-            Die Teilnehmenden wenden Python in praktischen Beispielen an.
+            {{ learningObject }}
           </li>
-          <li class="flex items-start gap-4">
-            <span
-              class="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-[var(--secondary-color,#F2A51D)]"
-            ></span>
-            Die Teilnehmenden verstehen die Grundkonzepte der objektorientierten Programmierung.
+
+          <li v-if="moduleData && moduleData.learningObjectives.length === 0">
+            <div class="flex items-start gap-4">
+              <span
+                class="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-[var(--secondary-color,#F2A51D)]"
+              ></span>
+              Keine Lernziele festgelegt
+            </div>
           </li>
         </ul>
       </section>
