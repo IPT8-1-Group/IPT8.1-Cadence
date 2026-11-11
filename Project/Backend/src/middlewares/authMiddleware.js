@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const pool = require('../confing/database');
 const authService = require('../services/authService');
+const sendError = require('../utils/apiError');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'cadence_secret_key_2026';
 
@@ -27,15 +28,17 @@ async function requireAuth(req, res, next) {
 
         // Konto muss existieren und aktiv sein
         if (!user || !user.active) {
-          return res.status(401).json({ error: 'Sitzung ungültig oder Konto deaktiviert' });
+          return sendError(res, 401, 'ACCOUNT_INACTIVE', 'Das Benutzerkonto ist nicht vorhanden oder deaktiviert.');
         }
 
         user.funktion = user.jobTitle;
         req.user = user;
         return next();
-      } catch {
-        // Falls JWT ungueltig oder abgelaufen ist
-        return res.status(401).json({ error: 'Ungültiger oder abgelaufener Token' });
+      } catch (err) {
+        if (err.name !== 'JsonWebTokenError' && err.name !== 'TokenExpiredError' && err.name !== 'NotBeforeError') {
+          throw err;
+        }
+        return sendError(res, 401, 'TOKEN_INVALID', 'Die Sitzung ist ungültig oder abgelaufen. Bitte melden Sie sich erneut an.');
       }
     }
 
@@ -53,7 +56,7 @@ async function requireAuth(req, res, next) {
         const user = users[0];
 
         if (!user || !user.active) {
-          return res.status(401).json({ error: 'Konto deaktiviert' });
+          return sendError(res, 401, 'ACCOUNT_INACTIVE', 'Das Benutzerkonto ist nicht vorhanden oder deaktiviert.');
         }
 
         user.funktion = user.jobTitle;
@@ -62,16 +65,16 @@ async function requireAuth(req, res, next) {
       }
     }
 
-    return res.status(401).json({ error: 'Anmeldung erforderlich' });
+    return sendError(res, 401, 'AUTHENTICATION_REQUIRED', 'Bitte melden Sie sich an, um fortzufahren.');
   } catch (err) {
-    return res.status(500).json({ error: 'Authentifizierungsfehler' });
+    return next(err);
   }
 }
 
 // Prueft ob der angemeldete Benutzer Admin ist
 function requireAdmin(req, res, next) {
   if (!req.user || req.user.role !== 'admin') {
-    return res.status(403).json({ error: 'Zugriff verweigert: Nur Administratoren erlaubt' });
+    return sendError(res, 403, 'ADMIN_REQUIRED', 'Für diese Aktion sind Administratorrechte erforderlich.');
   }
   next();
 }
@@ -81,4 +84,3 @@ module.exports = {
   requireAdmin,
   JWT_SECRET,
 };
-

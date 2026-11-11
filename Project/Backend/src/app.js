@@ -10,6 +10,7 @@ const grobplanungRoutes = require('./routes/grobplanungRoutes');
 const feinplanungRoutes = require('./routes/feinplanungRoutes');
 const { requireAuth } = require('./middlewares/authMiddleware');
 const errorHandler = require('./middlewares/errohandling.middeleware');
+const sendError = require('./utils/apiError');
 
 const app = express();
 
@@ -61,7 +62,7 @@ if (fs.existsSync(path.join(publicDir, 'index.html'))) {
 }
 
 app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+  sendError(res, 404, 'ROUTE_NOT_FOUND', 'Der angeforderte Endpunkt wurde nicht gefunden.');
 });
 
 // Zentrale Fehlerbehandlung

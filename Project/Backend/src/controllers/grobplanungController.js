@@ -1,11 +1,12 @@
 const grobplanungModel = require('../models/grobplanungModel');
+const sendError = require('../utils/apiError');
 
 async function getOutlines(req, res) {
   try {
     const outlines = await grobplanungModel.getAllOutlines(req.query.courseId);
     res.json(outlines);
   } catch {
-    res.status(500).json({ error: 'Fehler beim Laden der Grobplanung' });
+    sendError(res, 500, 'OUTLINES_LOAD_FAILED', 'Die Grobplanung konnte nicht geladen werden. Bitte versuchen Sie es später erneut.');
   }
 }
 
@@ -13,11 +14,11 @@ async function getOutline(req, res) {
   try {
     const item = await grobplanungModel.getOutlineById(req.params.id);
     if (!item) {
-      return res.status(404).json({ error: 'Eintrag nicht gefunden' });
+      return sendError(res, 404, 'OUTLINE_NOT_FOUND', 'Der Grobplanungseintrag wurde nicht gefunden.');
     }
     res.json(item);
   } catch {
-    res.status(500).json({ error: 'Fehler beim Laden des Eintrags' });
+    sendError(res, 500, 'OUTLINE_LOAD_FAILED', 'Der Grobplanungseintrag konnte nicht geladen werden. Bitte versuchen Sie es später erneut.');
   }
 }
 
@@ -26,14 +27,14 @@ async function createOutline(req, res) {
   const cId = fk_course || courseId;
 
   if (!title || !cId) {
-    return res.status(400).json({ error: 'title und fk_course sind erforderlich' });
+    return sendError(res, 400, 'REQUIRED_FIELDS_MISSING', 'Titel und Kurs sind erforderlich.');
   }
 
   try {
     const id = await grobplanungModel.createOutline(title, desc || null, cId);
     res.status(201).json({ id, title, desc: desc || null, fk_course: cId });
   } catch {
-    res.status(500).json({ error: 'Fehler beim Erstellen des Eintrags' });
+    sendError(res, 500, 'OUTLINE_CREATE_FAILED', 'Der Grobplanungseintrag konnte nicht erstellt werden. Bitte versuchen Sie es später erneut.');
   }
 }
 
@@ -42,11 +43,11 @@ async function updateOutline(req, res) {
   try {
     const updated = await grobplanungModel.updateOutline(req.params.id, title, desc);
     if (!updated) {
-      return res.status(404).json({ error: 'Eintrag nicht gefunden' });
+      return sendError(res, 404, 'OUTLINE_NOT_FOUND', 'Der Grobplanungseintrag wurde nicht gefunden.');
     }
     res.json(updated);
   } catch {
-    res.status(500).json({ error: 'Fehler beim Aktualisieren' });
+    sendError(res, 500, 'OUTLINE_UPDATE_FAILED', 'Der Grobplanungseintrag konnte nicht aktuallisiert werden. Bitte versuchen Sie es später erneut.');
   }
 }
 
@@ -55,7 +56,7 @@ async function deleteOutline(req, res) {
     await grobplanungModel.deleteOutline(req.params.id);
     res.status(204).send();
   } catch {
-    res.status(500).json({ error: 'Fehler beim Loeschen' });
+    sendError(res, 500, 'OUTLINE_DELETE_FAILED', 'Der Grobplanungseintrag konnte nicht gelöscht werden. Bitte versuchen Sie es später erneut.');
   }
 }
 
@@ -64,17 +65,17 @@ async function moveOutline(req, res) {
   const newCourseId = targetCourseId || fk_course || courseId;
 
   if (!newCourseId) {
-    return res.status(400).json({ error: 'targetCourseId ist erforderlich' });
+    return sendError(res, 400, 'TARGET_COURSE_REQUIRED', 'Bitte wählen Sie einen Zielkurs aus.');
   }
 
   try {
     const updated = await grobplanungModel.moveOutline(req.params.id, newCourseId);
     if (!updated) {
-      return res.status(404).json({ error: 'Eintrag nicht gefunden' });
+      return sendError(res, 404, 'OUTLINE_NOT_FOUND', 'Der Grobplanungseintrag wurde nicht gefunden.');
     }
     res.json(updated);
   } catch {
-    res.status(500).json({ error: 'Fehler beim Verschieben' });
+    sendError(res, 500, 'OUTLINE_MOVE_FAILED', 'Der Grobplanungseintrag konnte nicht verschoben werden. ');
   }
 }
 

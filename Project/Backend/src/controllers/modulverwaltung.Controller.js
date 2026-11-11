@@ -1,9 +1,6 @@
 const moduleModel = require("../models/modulverwaltungmodels");
 const logger = require("../utils/logger");
-
-function sendError(res, status, code, message) {
-  return res.status(status).json({ error: { code, message } });
-}
+const sendError = require("../utils/apiError");
 
 function handleDatabaseError(res, error) {
   logger.error("Module database operation failed", {
@@ -195,6 +192,6 @@ exports.replaceLearningObjectives = async (req, res) => {
     res,
     501,
     "MODULE_FIELD_UNSUPPORTED",
-    "Modul-Lernziele können mit dem vorhandenen Datenbankschema nicht gespeichert werden.",
+    "Modullernziele können mit dem vorhandenen Datenbankschema nicht gespeichert werden.",
   );
 };
