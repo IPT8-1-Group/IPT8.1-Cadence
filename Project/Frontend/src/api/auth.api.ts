@@ -7,8 +7,12 @@ import type {
   RegisterResponse,
 } from '@/types/auth.ts'
 
-export function registerApi(data: RegisterRequest | string, password = ''): Promise<RegisterResponse> {
+export function registerApi(
+  data: RegisterRequest | string,
+  password = '',
+): Promise<RegisterResponse> {
   const user = typeof data === 'string' ? { email: data, password } : data
+
   return apiFetch('/auth/register', {
     method: 'POST',
     body: JSON.stringify(user),
@@ -47,8 +51,15 @@ export function logoutApi(email: string, privateKey: string) {
   return sendSessionRequest('logout', email, privateKey)
 }
 
-export function getMeApi(): Promise<MeResponse> {
-  return apiFetch('/auth/me')
+export function getMeApi(savedToken?: string): Promise<MeResponse> {
+  if (savedToken === undefined) {
+    return apiFetch('/auth/me')
+  }
+
+  return apiFetch('/auth/me', {
+    authenticated: false,
+    headers: { Authorization: `Bearer ${savedToken}` },
+  })
 }
 
 export function setPasswordApi(token: string, password: string): Promise<AuthMessageResponse> {
@@ -59,7 +70,10 @@ export function setPasswordApi(token: string, password: string): Promise<AuthMes
   })
 }
 
-export function changePasswordApi(oldPassword: string, newPassword: string): Promise<AuthMessageResponse> {
+export function changePasswordApi(
+  oldPassword: string,
+  newPassword: string,
+): Promise<AuthMessageResponse> {
   return apiFetch('/auth/change-password', {
     method: 'POST',
     body: JSON.stringify({ oldPassword, newPassword }),
