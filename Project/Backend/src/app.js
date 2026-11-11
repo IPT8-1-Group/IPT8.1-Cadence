@@ -33,6 +33,7 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api', authRoutes);
+app.use('/', authRoutes);
 app.use('/api/access-requests', accessRequestRoutes);
 app.use('/api/admin', adminRoutes);
 
