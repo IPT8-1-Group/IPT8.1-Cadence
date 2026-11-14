@@ -3,13 +3,20 @@ import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
+import { useAuthStore } from '@/stores/authStore.ts'
 
 import './styles/main.css'
 import './styles/variables.css'
 
-const app = createApp(App)
+async function startApp() {
+  const app = createApp(App)
+  const pinia = createPinia()
 
-app.use(createPinia())
-app.use(router)
+  app.use(pinia)
+  await useAuthStore(pinia).restoreSession()
 
-app.mount('#app')
+  app.use(router)
+  app.mount('#app')
+}
+
+void startApp()

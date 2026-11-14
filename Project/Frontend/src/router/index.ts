@@ -48,7 +48,7 @@ const router = createRouter({
     },
     {
       name: 'ModuleDetail',
-      path: '/moduledetail',
+      path: '/moduledetail/:id',
       component: ModuleDetailView,
       meta: { requiresAuth: true },
     },
@@ -94,7 +94,7 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const authStore = useAuthStore()
 
-  if (authStore.isAuth) {
+  if (!authStore.isAuth) {
     try {
       await authStore.verify()
     } catch (err) {

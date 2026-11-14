@@ -11,7 +11,7 @@ export type Feinplanung = {
 export type FeinplanungDayResponse = {
   day: {
     id: number
-    date: number
+    date: number | string
     startTime: string
     endTime: string
     availableDurationMin: number

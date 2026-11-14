@@ -25,6 +25,10 @@ export function useRequestState() {
     }
   }
 
+  function invalidateData(state: object) {
+    latestLoad.set(state, Symbol())
+  }
+
   async function loadData<T>(state: Ref<T | null>, request: () => Promise<T>, fallbackError: string) {
     const loadId = Symbol()
     latestLoad.set(state, loadId)
@@ -40,5 +44,5 @@ export function useRequestState() {
     }, fallbackError)
   }
 
-  return { loading, error, runRequest, loadData }
+  return { loading, error, runRequest, loadData, invalidateData }
 }

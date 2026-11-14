@@ -1,88 +1,166 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { loginApi, logoutApi, refreshApi, registerApi, verifyApi } from '@/api/auth.api.ts'
+import { ApiError } from '@/api/api.ts'
+import {
+  changePasswordApi,
+  getMeApi,
+  loginApi,
+  logoutApi,
+  refreshApi,
+  registerApi,
+  setPasswordApi,
+  verifyApi,
+} from '@/api/auth.api.ts'
 import { useRequestState } from '@/stores/requestState.ts'
+import type { RegisterRequest, User } from '@/types/auth.ts'
 
-type Session = {
-  email: string
-  privateKey: string
-}
+const TOKEN_KEY = 'cadence.jwt'
 
 export const useAuthStore = defineStore('auth', () => {
-  const { loading, error, runRequest } = useRequestState()
-  const email = ref<string | null>(null)
-  const isAuth = computed(() => email.value !== null)
+  const { loading, error, runRequest, loadData } = useRequestState()
+  const user = ref<User | null>(null)
+  const token = ref<string | null>(null)
+  const email = computed(() => user.value?.email ?? null)
+  const isAuth = computed(() => token.value !== null)
+  const isAdmin = computed(() => isAuth.value && user.value?.role === 'admin')
 
-  let session: Session | null = null
+  let privateKey: string | null = null
   let sessionVersion = 0
 
-  function setSession(nextSession: Session | null) {
-    session = nextSession
-    email.value = nextSession?.email ?? null
+  async function restoreSession() {
+    const savedToken = sessionStorage.getItem(TOKEN_KEY)
+    if (!savedToken || token.value) return
+
+    const version = sessionVersion
+
+    await runRequest(async () => {
+      try {
+        const { user: profile } = await getMeApi(savedToken)
+        if (version !== sessionVersion) return
+
+        user.value = profile
+        token.value = savedToken
+      } catch (cause) {
+        if (version === sessionVersion && cause instanceof ApiError && cause.status === 401) {
+          clearSession()
+        }
+
+        throw cause
+      }
+    }, 'Sitzung konnte nicht wiederhergestellt werden.')
   }
 
-  async function register(email: string, password: string) {
-    return await runRequest(() => registerApi(email, password), 'Registrierung fehlgeschlagen.')
+  function clearSession() {
+    sessionVersion += 1
+    privateKey = null
+    token.value = null
+    user.value = null
+    sessionStorage.removeItem(TOKEN_KEY)
+  }
+
+  function invalidateSession(requestToken: string) {
+    if (token.value === requestToken) clearSession()
   }
 
   async function login(email: string, password: string) {
     const version = ++sessionVersion
 
     const success = await runRequest(async () => {
-      const data = await loginApi(email, password)
+      const data = await loginApi(email.trim(), password)
+      if (version !== sessionVersion) return false
 
-      if (version !== sessionVersion) {
-        return false
-      }
-
-      setSession({ email, privateKey: data.private_key })
+      privateKey = data.private_key
+      user.value = data.user
+      token.value = data.token
+      sessionStorage.setItem(TOKEN_KEY, data.token)
       return true
     }, 'Anmeldung fehlgeschlagen.')
 
     return success ?? false
   }
 
-  async function checkSession(request: typeof verifyApi, fallbackError: string) {
-    const activeSession = session
-
-    if (activeSession === null) {
-      return
-    }
-
-    return await runRequest(async () => {
-      try {
-        return await request(activeSession.email, activeSession.privateKey)
-      } catch (e) {
-        if (session === activeSession && e instanceof Error && e.message === 'Unauthorized') {
-          setSession(null)
-        }
-        throw e
-      }
-    }, fallbackError)
-  }
-
-  async function verify() {
-    return await checkSession(verifyApi, 'Sitzung konnte nicht überprüft werden.')
-  }
-
-  async function refresh() {
-    return await checkSession(refreshApi, 'Sitzung konnte nicht verlängert werden.')
-  }
-
-  async function logout() {
-    const activeSession = session
-    sessionVersion += 1
-    setSession(null)
-
-    if (activeSession === null) {
-      return
-    }
-
-    return await runRequest(
-      () => logoutApi(activeSession.email, activeSession.privateKey),
-      'Abmeldung fehlgeschlagen.'
+  function getMe() {
+    return loadData(
+      user,
+      async () => (await getMeApi()).user,
+      'Profil konnte nicht geladen werden.',
     )
   }
 
-  return { loading, error, email, isAuth, register, login, verify, refresh, logout }
+  function register(data: RegisterRequest | string, password = '') {
+    return runRequest(() => registerApi(data, password), 'Registrierung fehlgeschlagen.')
+  }
+
+  function setPassword(resetToken: string, password: string) {
+    return runRequest(
+      () => setPasswordApi(resetToken, password),
+      'Passwort konnte nicht gesetzt werden.',
+    )
+  }
+
+  function changePassword(oldPassword: string, newPassword: string) {
+    return runRequest(
+      () => changePasswordApi(oldPassword, newPassword),
+      'Passwort konnte nicht geändert werden.',
+    )
+  }
+
+  function checkRsaSession(request: typeof verifyApi, fallbackError: string) {
+    const sessionEmail = email.value
+    const sessionKey = privateKey
+    if (!sessionEmail || !sessionKey) return
+
+    return runRequest(() => request(sessionEmail, sessionKey), fallbackError)
+  }
+
+  async function verify() {
+    return await checkRsaSession(verifyApi, 'RSA-Sitzung konnte nicht überprüft werden.')
+  }
+
+  async function refresh() {
+    return await checkRsaSession(refreshApi, 'RSA-Sitzung konnte nicht verlängert werden.')
+  }
+
+  async function logout(): Promise<boolean> {
+    const sessionEmail = email.value
+    const sessionKey = privateKey
+    const version = sessionVersion
+
+    const success = await runRequest(async () => {
+      if (sessionEmail && sessionKey) {
+        try {
+          await logoutApi(sessionEmail, sessionKey)
+        } catch (cause) {
+          if (!(cause instanceof ApiError) || cause.status !== 401) throw cause
+        }
+      }
+
+      if (version !== sessionVersion) return false
+
+      clearSession()
+      return true
+    }, 'Abmeldung fehlgeschlagen.')
+
+    return success === true
+  }
+
+  return {
+    loading,
+    error,
+    user,
+    token,
+    email,
+    isAuth,
+    isAdmin,
+    login,
+    logout,
+    verify,
+    refresh,
+    invalidateSession,
+    getMe,
+    register,
+    setPassword,
+    changePassword,
+    restoreSession,
+  }
 })
