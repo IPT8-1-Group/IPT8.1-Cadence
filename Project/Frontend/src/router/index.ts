@@ -66,13 +66,13 @@ const router = createRouter({
     },
     {
       name: 'DetailedPlanning',
-      path: '/detailedplanning',
+      path: '/detailedplanning/:id',
       component: DetailedPlanningView,
       meta: { requiresAuth: true },
     },
     {
       name: 'OutlinePlanning',
-      path: '/outlinePlanning',
+      path: '/outlinePlanning/:id',
       component: OutlinePlanningView,
       meta: { requiresAuth: true },
     },
