@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1671 941">
+  <defs>
+    <linearGradient id="upper-circle" x2="0%" y2="100%">
+      <stop stop-color="#EEE2D8"/>
+      <stop offset="100%" stop-color="#F0E5DB"/>
+    </linearGradient>
+    <linearGradient id="rear-wave" x2="100%" y2="100%">
+      <stop stop-color="#EEE3D9"/>
+      <stop offset="100%" stop-color="#F0E5DA"/>
+    </linearGradient>
+    <linearGradient id="gold-circle" x2="100%" y2="100%">
+      <stop stop-color="#E0A526"/>
+      <stop offset="100%" stop-color="#DB9D1E"/>
+    </linearGradient>
+    <linearGradient id="front-wave" x2="100%" y2="100%">
+      <stop stop-color="#ECE0D2"/>
+      <stop offset="100%" stop-color="#EADDCF"/>
+    </linearGradient>
+  </defs>
+
+  <ellipse cx="252" cy="151" rx="140" ry="143" fill="url(#upper-circle)"/>
+  <path fill="url(#rear-wave)"
+        d="M 0 204
+           C 107 286 189 397 237 500
+           C 281 601 295 687 317 750
+           C 343 836 360 886 437 941
+           H 0 Z"/>
+  <circle cx="154.5" cy="707.5" r="97.5" fill="url(#gold-circle)"/>
+  <path fill="url(#front-wave)"
+        d="M 0 718
+           C 135 716 288 808 437 941
+           H 0 Z"/>
+</svg>
