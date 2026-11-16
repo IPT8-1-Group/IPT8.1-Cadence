@@ -73,7 +73,7 @@ async function sendRegisterRequest() {
 
   <SectionComp class="h-screen flex items-center justify-center">
     <img
-      src="../../assets/images/bg-auth.png"
+      src="../../assets/images/bg-auth.svg"
       alt="background image register page"
       class="fixed inset-x-0 bottom-0 -z-1"
     />

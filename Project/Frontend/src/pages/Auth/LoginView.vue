@@ -36,7 +36,7 @@ async function sendLogin() {
 
   <section class="flex min-h-screen items-center justify-center px-6 py-12">
     <img
-      src="../../assets/images/bg-auth.png"
+      src="../../assets/images/bg-auth.svg"
       alt="background image login page"
       class="fixed inset-x-0 bottom-0 -z-1"
     />
