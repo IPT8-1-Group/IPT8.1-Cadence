@@ -3,6 +3,27 @@ import AppNavbar from '@/components/layout/AppNavbar.vue'
 import SectionComp from '@/components/ui/SectionComp.vue'
 import Svg from '@/components/ui/Svg.vue'
 import Divider from '@/components/ui/Divider.vue'
+import { useRoute } from 'vue-router'
+import { computed, onMounted, ref } from 'vue'
+import type { ModuleDetail } from '@/types/module.ts'
+import { useGrobplanungStore } from '@/stores/grobplanungStore.ts'
+import type { Grobplanung } from '@/types/grobplanung.ts'
+import { useCourseStore } from '@/stores/courseStore.ts'
+import { useModuleStore } from '@/stores/moduleStore.ts'
+
+const route = useRoute()
+const moduleId = computed(() => {
+  return Number(route.params.id)
+})
+
+const grobplanungStore = useGrobplanungStore()
+const moduleStore = useModuleStore()
+const moduleData = ref<ModuleDetail | null>(null)
+const grobplanungData = ref<Grobplanung | null>(null)
+onMounted(async () => {
+  moduleData.value = (await moduleStore.getModuleById(moduleId.value)) ?? null
+  grobplanungData.value = (await grobplanungStore.getGrobplanungById(moduleId.value)) ?? null
+})
 </script>
 
 <template>
@@ -13,28 +34,28 @@ import Divider from '@/components/ui/Divider.vue'
       <div class="flex flex-col gap-3">
         <h1 class="text-[var(--text-color)]">Grobplanung</h1>
         <p class="text-[var(--text-color-light)] font-medium">
-          Codierung, Kompression und Verschlüssung (muss ausgetauscht werden!)
+          {{ moduleData?.title }}
         </p>
       </div>
 
-      <div class="flex gap-2">
-        <button
-          class="lift-hover transition duration-200 select-none border border-transparent cursor-pointer flex items-center justify-center gap-2 px-3 py-2 bg-[var(--surface-color)] text-[var(--text-color)] w-fit text-nowrap rounded-lg shadow-lg"
-        >
-          <Svg>
-            <i class="fa-regular fa-eye"></i>
-          </Svg>
-          <span>Speichern</span>
-        </button>
-        <button
-          class="lift-hover transition duration-200 select-none border border-transparent cursor-pointer flex items-center justify-center gap-2 px-3 py-2 bg-[var(--secondary-color)] text-[var(--text-color)] w-fit text-nowrap rounded-lg shadow-lg"
-        >
-          <Svg>
-            <i class="fa-regular fa-floppy-disk"></i>
-          </Svg>
-          <span>Speichern</span>
-        </button>
-      </div>
+      <!--      <div class="flex gap-2">-->
+      <!--        <button-->
+      <!--          class="lift-hover transition duration-200 select-none border border-transparent cursor-pointer flex items-center justify-center gap-2 px-3 py-2 bg-[var(&#45;&#45;surface-color)] text-[var(&#45;&#45;text-color)] w-fit text-nowrap rounded-lg shadow-lg"-->
+      <!--        >-->
+      <!--          <Svg>-->
+      <!--            <i class="fa-regular fa-eye"></i>-->
+      <!--          </Svg>-->
+      <!--          <span>Vorschau</span>-->
+      <!--        </button>-->
+      <!--        <button-->
+      <!--          class="lift-hover transition duration-200 select-none border border-transparent cursor-pointer flex items-center justify-center gap-2 px-3 py-2 bg-[var(&#45;&#45;secondary-color)] text-[var(&#45;&#45;text-color)] w-fit text-nowrap rounded-lg shadow-lg"-->
+      <!--        >-->
+      <!--          <Svg>-->
+      <!--            <i class="fa-regular fa-floppy-disk"></i>-->
+      <!--          </Svg>-->
+      <!--          <span>Speichern</span>-->
+      <!--        </button>-->
+      <!--      </div>-->
     </header>
 
     <div class="mx-8 my-8">
