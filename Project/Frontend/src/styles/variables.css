@@ -20,6 +20,7 @@
   --hover-light-color: #E8F0FA;
 
   --error-color: #B91C1C;
+  --error-color-light: var(--color-red-100);
   --success-color: #15803D;
 
   --font-family: "Inter", sans-serif;
