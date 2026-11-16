@@ -3,19 +3,39 @@ import AppNavbar from '@/components/layout/AppNavbar.vue'
 import Svg from '@/components/ui/Svg.vue'
 import SectionComp from '@/components/ui/SectionComp.vue'
 import { useModuleStore } from '@/stores/moduleStore.ts'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { getModuleIcon } from '@/utils/moduleIcon.ts'
 import { useRouter } from 'vue-router'
+import type { ModuleListResponse } from '@/types/module.ts'
+import ModuleEditMenu from '@/components/modules/ModuleEditMenu.vue'
+import ModuleOptionsMenu from '@/components/modules/ModuleOptionsMenu.vue'
 
 const moduleStore = useModuleStore()
 
 const searchModule = ref<string>('')
+const moduleData = ref<ModuleListResponse | null>(null)
+const filteredModuleData = computed(() => {
+  if (!moduleData.value) return null
+
+  const searchTerms = searchModule.value.toLowerCase().match(/\S+/g) ?? []
+
+  return moduleData.value.data.filter((module) => {
+    const fields = [
+      module.code.toLowerCase(),
+      module.title.toLowerCase(),
+      module.description?.toLowerCase() ?? '',
+    ]
+
+    return searchTerms.every((term) => fields.some((field) => field.includes(term)))
+  })
+})
 
 const error = ref<string | null>(null)
 onMounted(async () => {
   error.value = ''
   try {
     await moduleStore.getModules()
+    moduleData.value = moduleStore.modulesData
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Module fehlgeschlagen'
   }
@@ -36,6 +56,15 @@ async function sendCreateModule(code: string, title: string, description: string
 const router = useRouter()
 async function routerToModuleDetailed(id: number) {
   await router.push(`/moduleDetail/${id}`)
+}
+
+function moduleEditHandler(moduleId: number, event: string) {
+  if (event === 'details') {
+    return
+  }
+  if (event === 'outline') return router.push(`/outlinePlanning/${moduleId}`)
+  if (event === 'detailPlan') return router.push(`/detailedplanning/${moduleId}`)
+  else return
 }
 </script>
 <template>
@@ -75,10 +104,10 @@ async function routerToModuleDetailed(id: number) {
     </header>
     <div class="grid grid-cols-1 gap-3 mx-8 my-8">
       <div
-        v-for="module in moduleStore.modulesData?.data"
+        v-for="module in filteredModuleData"
         @click="routerToModuleDetailed(module.id)"
         :key="module.id"
-        class="hover:shadow-xl lift-hover cursor-pointer shadow-lg col-span-1 w-full flex flex-col lg:flex-row lg:items-center justify-between gap-3 px-6 py-4 border border-[var(--border-color)] bg-[var(--surface-color)] rounded-2xl"
+        class="has-[button[aria-expanded=true]]:z-40 hover:shadow-xl lift-hover cursor-pointer shadow-lg col-span-1 w-full flex flex-col lg:flex-row lg:items-center justify-between gap-3 px-6 py-4 border border-[var(--border-color)] bg-[var(--surface-color)] rounded-2xl"
       >
         <div class="flex items-center gap-3 min-w-0 flex-1">
           <Svg
@@ -116,23 +145,19 @@ async function routerToModuleDetailed(id: number) {
           </div>
         </div>
         <div class="flex items-center justify-end gap-3 shrink-0">
-          <button
-            type="button"
-            aria-label="Python bearbeiten"
-            class="flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] text-[var(--text-color)]"
-            @click.stop
-          >
-            <i class="fa-solid fa-pencil"></i>
-          </button>
-          <button
-            type="button"
-            aria-label="Weitere Aktionen"
-            class="flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] text-[var(--text-color)]"
-            @click.stop
-          >
-            <i class="fa-solid fa-ellipsis-vertical"></i>
-          </button>
+          <ModuleEditMenu @select="moduleEditHandler(module.id, $event)"></ModuleEditMenu>
+          <ModuleOptionsMenu></ModuleOptionsMenu>
         </div>
+      </div>
+
+      <div
+        v-if="filteredModuleData?.length === 0"
+        class="px-6 py-4 col-span-1 w-full text-center flex items-center justify-center gap-2 text-[var(--text-color)] text-sm"
+      >
+        <Svg>
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </Svg>
+        <span>Keine Einträge gefunden.</span>
       </div>
     </div>
   </SectionComp>
