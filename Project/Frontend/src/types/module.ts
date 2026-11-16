@@ -53,6 +53,10 @@ export type CreateModuleRequest = {
   description: string
 }
 
+export type CreateModuleRequestALearningObj = CreateModuleRequest & {
+  learningObjectives: string[]
+}
+
 export type PatchModuleRequest = Partial<CreateModuleRequest> & {
   externalUrl?: string | null
 }
