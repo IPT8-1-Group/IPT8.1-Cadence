@@ -13,7 +13,10 @@ const error = ref<string | null>(null)
 onMounted(async () => {
   error.value = ''
   try {
-    await moduleStore.getModules()
+    await moduleStore.getModules({
+      sortBy: 'updatedAt',
+      sortDirection: 'desc',
+    })
   } catch {}
 })
 
