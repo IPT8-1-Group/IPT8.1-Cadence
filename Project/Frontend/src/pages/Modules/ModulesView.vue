@@ -6,9 +6,14 @@ import { useModuleStore } from '@/stores/moduleStore.ts'
 import { computed, onMounted, ref } from 'vue'
 import { getModuleIcon } from '@/utils/moduleIcon.ts'
 import { useRouter } from 'vue-router'
-import type { ModuleListResponse } from '@/types/module.ts'
+import type {
+  CreateModuleRequest,
+  CreateModuleRequestALearningObj,
+  ModuleListResponse,
+} from '@/types/module.ts'
 import ModuleEditMenu from '@/components/modules/ModuleEditMenu.vue'
 import ModuleOptionsMenu from '@/components/modules/ModuleOptionsMenu.vue'
+import CreateModule from '@/components/modules/CreateModule.vue'
 
 const moduleStore = useModuleStore()
 
@@ -66,6 +71,29 @@ function moduleEditHandler(moduleId: number, event: string) {
   if (event === 'detailPlan') return router.push(`/detailedplanning/${moduleId}`)
   else return
 }
+
+// create module
+const createModuleIsOpen = ref<boolean>(false)
+const createModuleError = ref<string | null>(null)
+function switchCreateModule() {
+  return (createModuleIsOpen.value = !createModuleIsOpen.value)
+}
+
+async function onCreateModule(value: CreateModuleRequestALearningObj) {
+  const data = await moduleStore.createModule({
+    description: value.description,
+    title: value.title,
+    code: value.code,
+  })
+
+  if (data?.id === null || data?.id === undefined)
+    return (createModuleError.value = moduleStore.error)
+
+  await moduleStore.replaceLearningObjectives(data.id, value.learningObjectives)
+  if (moduleStore.error) return (createModuleError.value = moduleStore.error)
+
+  createModuleIsOpen.value = false
+}
 </script>
 <template>
   <AppNavbar></AppNavbar>
@@ -75,27 +103,46 @@ function moduleEditHandler(moduleId: number, event: string) {
       <div class="flex flex-col items-start justify-center gap-3 min-w-0">
         <h1>Module verwalten</h1>
         <p class="text-[var(--text-color-light)]">
-          Verwalte deine Module und behalte den Überblick über alle Inhalte,
-          Kurse und zugehörigen Planungen.
+          Verwalte deine Module und behalte den Überblick über alle Inhalte, Kurse und zugehörigen
+          Planungen.
         </p>
       </div>
-      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto shrink-0">
-        <label class="flex h-10 w-full sm:w-[220px] md:w-[240px] lg:w-[260px] min-w-0 items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color-light)]">
-  <i class="fa-solid fa-magnifying-glass text-sm shrink-0"></i>
-  <input
-    type="text"
-    placeholder="Module suchen ..."
-    class="w-full min-w-0 bg-transparent text-sm text-[var(--text-color)] placeholder:text-[var(--text-color-light)] outline-none" />
-</label>
-       <button
-  type="button"
-  class="flex h-10 w-auto shrink-0 items-center justify-center gap-2 rounded-lg bg-[var(--primary-color,#0A2A66)] px-4 text-sm font-medium text-white shadow-lg">
-  <i class="fa-solid fa-plus"></i>
-  Neues Modul
-</button>
+      <div
+        class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto shrink-0"
+      >
+        <label
+          class="flex h-10 w-full sm:w-[220px] md:w-[240px] lg:w-[260px] min-w-0 items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color-light)]"
+        >
+          <i class="fa-solid fa-magnifying-glass text-sm shrink-0"></i>
+          <input
+            v-model="searchModule"
+            type="text"
+            placeholder="Module suchen ..."
+            class="w-full min-w-0 bg-transparent text-sm text-[var(--text-color)] placeholder:text-[var(--text-color-light)] outline-none"
+          />
+        </label>
+        <button
+          type="button"
+          @click="switchCreateModule"
+          class="lift-hover cursor-pointer flex h-10 w-auto shrink-0 items-center justify-center gap-2 rounded-lg bg-[var(--primary-color,#0A2A66)] px-4 text-sm font-medium text-white shadow-lg"
+        >
+          <i class="fa-solid fa-plus"></i>
+          Neues Modul
+        </button>
       </div>
     </header>
     <div class="grid grid-cols-1 gap-3 mx-8 my-8">
+      <CreateModule
+        v-if="createModuleIsOpen"
+        @close="switchCreateModule"
+        @create="onCreateModule"
+        class="mt-5"
+      >
+        <p v-if="createModuleError" class="text-[var(--error-color)] text-xs my-2">
+          {{ createModuleError?.trim() }}
+        </p>
+      </CreateModule>
+
       <div
         v-for="module in filteredModuleData"
         @click="routerToModuleDetailed(module.id)"
@@ -113,12 +160,14 @@ function moduleEditHandler(moduleId: number, event: string) {
               {{ module.code }} - {{ module.title.trim().slice(0, 120) }}
             </h3>
             <p class="mt-1 text-sm text-[var(--text-color-light)]">
-              Programmierung in Python mit Fokus auf praktische Anwendungen.
+              {{ module.description?.trim().slice(0, 120) }}
             </p>
           </div>
         </div>
-       
-        <div class="flex flex-wrap lg:flex-nowrap items-center gap-x-4 gap-y-3 lg:gap-6 xl:gap-8 shrink-0">
+
+        <div
+          class="flex flex-wrap lg:flex-nowrap items-center gap-x-4 gap-y-3 lg:gap-6 xl:gap-8 shrink-0"
+        >
           <div class="border-l border-[var(--border-color)] pl-5">
             <span class="text-sm text-[var(--text-color-light)]">Kurse</span>
             <p class="mt-1 text-sm text-[var(--text-color)]">
@@ -141,20 +190,6 @@ function moduleEditHandler(moduleId: number, event: string) {
         <div class="flex items-center justify-end gap-3 shrink-0">
           <ModuleEditMenu @select="moduleEditHandler(module.id, $event)"></ModuleEditMenu>
           <ModuleOptionsMenu></ModuleOptionsMenu>
-        <!-- Aktionen: auf kleinen Bildschirmen ausgeblendet -->
-        <div class="hidden sm:flex items-center justify-end gap-3 shrink-0">
-          <button
-            type="button" aria-label="Python bearbeiten"
-            class="flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] text-[var(--text-color)]"
-            @click.stop>
-            <i class="fa-solid fa-pencil"></i>
-          </button>
-          <button
-            type="button" aria-label="Weitere Aktionen"
-            class="flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] text-[var(--text-color)]"
-            @click.stop>
-            <i class="fa-solid fa-ellipsis-vertical"></i>
-          </button>
         </div>
       </div>
 
