@@ -5,7 +5,7 @@ import SectionComp from '@/components/ui/SectionComp.vue'
 import { useModuleStore } from '@/stores/moduleStore.ts'
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import type { ModuleDetail, ModuleResponse } from '@/types/module.ts'
+import type { ModuleDetail } from '@/types/module.ts'
 import { getModuleIcon } from '@/utils/moduleIcon.ts'
 
 const moduleStore = useModuleStore()
@@ -53,21 +53,21 @@ onMounted(async () => {
           <div class="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              class="flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color)] shadow-sm"
+              class="lift-hover flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color)] shadow-sm"
             >
               <i class="fa-solid fa-pencil"></i>
               Bearbeiten
             </button>
             <button
               type="button"
-              class="flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color)] shadow-sm"
+              class="lift-hover flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color)] shadow-sm"
             >
               <i class="fa-regular fa-copy"></i>
               Kopieren
             </button>
             <button
               type="button"
-              class="flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[#F08A8A] bg-[var(--surface-color)] px-3 text-sm text-[#E5383B] shadow-sm"
+              class="lift-hover flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[#F08A8A] bg-[var(--surface-color)] px-3 text-sm text-[#E5383B] shadow-sm"
             >
               <i class="fa-regular fa-trash-can"></i>
               Löschen
@@ -91,19 +91,19 @@ onMounted(async () => {
           </div>
           <div class="border-l border-[var(--border-color)] px-5 py-2">
             <span class="block text-[var(--text-color-light)]">Beschreibung</span>
-            <span class="mt-1 block text-sm text-base text-[var(--text-color)]">
+            <span class="mt-1 block text-sm text-[var(--text-color)]">
               {{ moduleData?.description?.trim().slice(0, 120) }}
             </span>
           </div>
           <div class="border-l border-[var(--border-color)] px-5 py-2">
             <span class="block text-[var(--text-color-light)]">Erstellt am</span>
-            <span class="mt-1 block text-sm text-base text-[var(--text-color)]">{{
+            <span class="mt-1 block text-sm text-[var(--text-color)]">{{
               moduleData?.createdAt ?? 'Nicht gesetzt'
             }}</span>
           </div>
           <div class="border-l border-[var(--border-color)] px-5 py-2">
             <span class="block text-[var(--text-color-light)]">Zuletzt bearbeitet</span>
-            <span class="mt-1 block text-sm text-base text-[var(--text-color)]">{{
+            <span class="mt-1 block text-sm text-[var(--text-color)]">{{
               moduleData?.updatedAt ?? 'Nicht gesetzt'
             }}</span>
           </div>
@@ -113,25 +113,27 @@ onMounted(async () => {
         >
           <button
             type="button"
-            class="-mb-px shrink-0 cursor-pointer border-b-[3px] border-[var(--secondary-color,#F2A51D)] px-3 pb-3 text-base font-semibold text-[var(--text-color)]"
+            class="-mb-px shrink-0 cursor-pointer border-b-[3px] border-[var(--secondary-color)] px-3 pb-3 text-base font-semibold text-[var(--text-color)]"
           >
             Übersicht
           </button>
-          <button
+          <RouterLink
+            :to="`/outlinePlanning/${moduleId}`"
             type="button"
-            class="shrink-0 cursor-pointer px-3 pb-3 text-base text-[var(--text-color-light)]"
+            class="-mb-px shrink-0 cursor-pointer border-b-[3px] border-transparent hover:border-[var(--secondary-color-light)] px-3 pb-3 text-base text-[var(--text-color-light)] hover:text-[var(--text-color)]"
           >
             Grobplanung
-          </button>
-          <button
+          </RouterLink>
+          <RouterLink
+            :to="`/detailedplanning/${moduleId}`"
             type="button"
-            class="shrink-0 cursor-pointer px-3 pb-3 text-base text-[var(--text-color-light)]"
+            class="-mb-px shrink-0 cursor-pointer border-b-[3px] border-transparent hover:border-[var(--secondary-color-light)] px-3 pb-3 text-base text-[var(--text-color-light)] hover:text-[var(--text-color)]"
           >
             Feinplanung
-          </button>
+          </RouterLink>
           <button
             type="button"
-            class="shrink-0 cursor-pointer px-3 pb-3 text-base text-[var(--text-color-light)]"
+            class="-mb-px shrink-0 cursor-pointer border-b-[3px] border-transparent hover:border-[var(--secondary-color-light)] px-3 pb-3 text-base text-[var(--text-color-light)] hover:text-[var(--text-color)]"
           >
             Materialien
           </button>
@@ -195,7 +197,7 @@ onMounted(async () => {
             <h2 class="text-lg font-bold text-[var(--text-color)]">Modulbeschreibung</h2>
             <button
               type="button"
-              class="flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color)]"
+              class="lift-hover flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color)]"
             >
               <i class="fa-solid fa-pencil"></i>
               Bearbeiten
@@ -217,7 +219,7 @@ onMounted(async () => {
 
           <button
             type="button"
-            class="flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color)]"
+            class="lift-hover flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color)]"
           >
             <i class="fa-solid fa-pencil"></i>
             Bearbeiten
