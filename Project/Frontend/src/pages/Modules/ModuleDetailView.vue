@@ -7,6 +7,10 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import type { ModuleDetail } from '@/types/module.ts'
 import { getModuleIcon } from '@/utils/moduleIcon.ts'
+import SwitchButton from '@/components/modules/SwitchButton.vue'
+import PushInNotification from '@/components/ui/PushInNotification.vue'
+import router from '@/router'
+import { notification, showNotification, undoNotification } from '@/utils/notification.ts'
 
 const moduleStore = useModuleStore()
 
@@ -18,13 +22,100 @@ const moduleId = computed(() => {
 const moduleData = ref<ModuleDetail | null>(null)
 onMounted(async () => {
   moduleData.value = (await moduleStore.getModuleById(moduleId.value)) ?? null
+
+  if (moduleData.value !== undefined && moduleData.value !== null) {
+    description.value = moduleData.value.description!
+    learningObj.value = moduleData.value.learningObjectives
+  }
 })
+
+const description = ref<string>('')
+const descriptionEditIsOn = ref<boolean>(false)
+const changeDescIsSuccessfull = ref<boolean | null>(null)
+async function changeDescription(editOn: boolean) {
+  changeDescIsSuccessfull.value = null
+  if (editOn) {
+    return (descriptionEditIsOn.value = !descriptionEditIsOn.value)
+  }
+
+  await moduleStore.patchModule(moduleId.value, {
+    description: description.value,
+  })
+
+  changeDescIsSuccessfull.value = moduleStore.error == null
+  return (descriptionEditIsOn.value = !descriptionEditIsOn.value)
+}
+
+const learningObj = ref<string[]>([])
+const learningObjEditIsOn = ref<boolean>(false)
+const changeLearningObjIsSuccessfull = ref<boolean | null>(null)
+async function changeLearningObj(editOn: boolean) {
+  changeLearningObjIsSuccessfull.value = null
+  if (editOn) {
+    return (learningObjEditIsOn.value = !learningObjEditIsOn.value)
+  }
+
+  await moduleStore.replaceLearningObjectives(moduleId.value, learningObj.value)
+  changeLearningObjIsSuccessfull.value = moduleStore.error == null
+  return (learningObjEditIsOn.value = !learningObjEditIsOn.value)
+}
+
+function addLearningObj() {
+  learningObj.value.push('')
+}
+
+function updateLearningObjective(index: number, event: Event) {
+  const objectives = moduleData.value?.learningObjectives
+  const input = event.currentTarget
+
+  if (objectives && input instanceof HTMLInputElement) {
+    objectives[index] = input.value
+  }
+}
+
+async function deleteModule() {
+  const errorMessage = 'Modul konnte nicht gelöscht werden.'
+
+  try {
+    await moduleStore.deleteModule(moduleId.value)
+
+    showNotification(moduleStore.error == null ? 'Modul gelöscht.' : errorMessage)
+
+    if (moduleStore.error == null) {
+      setTimeout(() => router.push('/modules'), 1000)
+    }
+  } catch {
+    showNotification(errorMessage)
+  }
+}
+
+function removeLearningObjective(index: number) {
+  const [removed] = learningObj.value.splice(index, 1)
+  if (removed === undefined) return
+
+  showNotification('Lernziel entfernt.', () => {
+    learningObj.value.splice(index, 0, removed)
+  })
+}
 </script>
 
 <template>
   <AppNavbar />
 
   <SectionComp>
+    <Transition name="notification">
+      <PushInNotification
+        v-if="notification"
+        :key="notification.id"
+        :notification="notification.message"
+        :undo-on="Boolean(notification.undo)"
+        @undo="undoNotification"
+        @close="notification = null"
+      >
+        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+      </PushInNotification>
+    </Transition>
+
     <div class="mx-4 sm:mx-6 lg:mx-8 my-6 sm:my-8 flex flex-col gap-5">
       <div
         class="rounded-t-xl border border-b-0 border-[var(--border-color)] bg-[var(--surface-color)] px-4 sm:px-6 pt-5"
@@ -66,6 +157,7 @@ onMounted(async () => {
               Kopieren
             </button>
             <button
+              @click="deleteModule"
               type="button"
               class="lift-hover flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[#F08A8A] bg-[var(--surface-color)] px-3 text-sm text-[#E5383B] shadow-sm"
             >
@@ -189,23 +281,48 @@ onMounted(async () => {
           </div>
         </section>
         <section
-          class="rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] px-5 pb-5"
+          class="flex flex-col min-h-0 rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] px-5 pb-5"
         >
           <div
             class="flex min-h-14 items-center justify-between gap-3 border-b border-[var(--border-color)]"
           >
             <h2 class="text-lg font-bold text-[var(--text-color)]">Modulbeschreibung</h2>
-            <button
-              type="button"
-              class="lift-hover flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color)]"
-            >
-              <i class="fa-solid fa-pencil"></i>
-              Bearbeiten
-            </button>
+
+            <div class="flex gap-2 items-center justify-center">
+              <div v-if="changeDescIsSuccessfull != null" class="text-xs">
+                <span
+                  v-if="changeDescIsSuccessfull"
+                  class="text-[var(--success-color)] flex items-center justify-center"
+                >
+                  <Svg>
+                    <i class="fa-regular fa-thumbs-up"></i>
+                  </Svg>
+                  Gespeichert
+                </span>
+
+                <span v-else class="text-[var(--error-color)] flex items-center justify-center">
+                  <Svg>
+                    <i class="fa-solid fa-x"></i>
+                  </Svg>
+                  Fehlgeschlagen
+                </span>
+              </div>
+              <SwitchButton :is-on="descriptionEditIsOn" @switch="changeDescription"></SwitchButton>
+            </div>
           </div>
-          <p class="pt-5 text-sm sm:text-base leading-6 text-[var(--text-color-light)]">
-            {{ moduleData?.description?.trim().slice(0, 600) }}
-          </p>
+          <div
+            class="pt-5 text-sm sm:text-base leading-6 text-[var(--text-color-light)] flex min-h-0 flex-1 flex-col"
+          >
+            <textarea
+              v-model="description"
+              placeholder="Gebe ein über was dieses Modul geht..."
+              :readonly="!descriptionEditIsOn"
+              :disabled="!descriptionEditIsOn"
+              aria-label="Modulbeschreibung"
+              maxlength="500"
+              class="w-full h-full outline-0 text-wrap flex-1 resize-none"
+            />
+          </div>
         </section>
       </div>
 
@@ -217,13 +334,36 @@ onMounted(async () => {
         >
           <h2 class="text-lg font-bold text-[var(--text-color)]">Lernziele</h2>
 
-          <button
-            type="button"
-            class="lift-hover flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color)]"
-          >
-            <i class="fa-solid fa-pencil"></i>
-            Bearbeiten
-          </button>
+          <div class="flex items-center justify-center gap-2">
+            <button
+              v-if="learningObjEditIsOn"
+              @click.stop="addLearningObj"
+              type="button"
+              class="lift-hover flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color)]"
+            >
+              <i class="fa-solid fa-plus"></i>
+              Hinzufügen
+            </button>
+            <div v-if="changeLearningObjIsSuccessfull != null" class="text-xs">
+              <span
+                v-if="changeLearningObjIsSuccessfull"
+                class="text-[var(--success-color)] flex items-center justify-center"
+              >
+                <Svg>
+                  <i class="fa-regular fa-thumbs-up"></i>
+                </Svg>
+                Gespeichert
+              </span>
+
+              <span v-else class="text-[var(--error-color)] flex items-center justify-center">
+                <Svg>
+                  <i class="fa-solid fa-x"></i>
+                </Svg>
+                Fehlgeschlagen
+              </span>
+            </div>
+            <SwitchButton :is-on="learningObjEditIsOn" @switch="changeLearningObj"></SwitchButton>
+          </div>
         </div>
         <ul class="space-y-3 pt-4 text-sm sm:text-base leading-6 text-[var(--text-color-light)]">
           <li
@@ -231,17 +371,28 @@ onMounted(async () => {
             :key="i"
             class="flex items-start gap-4"
           >
-            <span
-              class="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-[var(--secondary-color,#F2A51D)]"
-            ></span>
-            {{ learningObject }}
+            <div class="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-[var(--secondary-color)]"></div>
+            <input
+              @input="updateLearningObjective(i, $event)"
+              :value="learningObject"
+              maxlength="250"
+              :disabled="!learningObjEditIsOn"
+              :readonly="!learningObjEditIsOn"
+              alt="lernziel"
+              class="w-[500px] focus:outline-1 outline-[var(--primary-color)] border border-[var(--primary-color)] rounded-lg px-2 py-1"
+            />
+            <Svg
+              v-if="learningObjEditIsOn"
+              @click="removeLearningObjective(i)"
+              class="lift-hover w-[35px] h-[35px] rounded-lg bg-[var(--error-color-light)] text-[var(--error-color)] cursor-pointer"
+            >
+              <i class="fa-solid fa-trash-can"></i>
+            </Svg>
           </li>
 
           <li v-if="moduleData && moduleData.learningObjectives.length === 0">
             <div class="flex items-start gap-4">
-              <span
-                class="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-[var(--secondary-color,#F2A51D)]"
-              ></span>
+              <div class="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-[var(--secondary-color)]"></div>
               Keine Lernziele festgelegt
             </div>
           </li>
@@ -250,3 +401,17 @@ onMounted(async () => {
     </div>
   </SectionComp>
 </template>
+
+<style scoped>
+.notification-leave-active {
+  transition:
+    opacity 250ms ease-out,
+    transform 250ms ease-out;
+  pointer-events: none;
+}
+
+.notification-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+</style>
