@@ -8,8 +8,8 @@ import { computed, onMounted, ref } from 'vue'
 import type { ModuleDetail } from '@/types/module.ts'
 import { useGrobplanungStore } from '@/stores/grobplanungStore.ts'
 import type { Grobplanung } from '@/types/grobplanung.ts'
-import { useCourseStore } from '@/stores/courseStore.ts'
 import { useModuleStore } from '@/stores/moduleStore.ts'
+import Draggable from 'vuedraggable'
 
 const route = useRoute()
 const moduleId = computed(() => {
@@ -24,6 +24,41 @@ onMounted(async () => {
   moduleData.value = (await moduleStore.getModuleById(moduleId.value)) ?? null
   grobplanungData.value = (await grobplanungStore.getGrobplanungById(moduleId.value)) ?? null
 })
+
+const days = ref([
+  {
+    id: 1,
+    label: '1. Tag',
+    courses: [
+      {
+        id: 101,
+        title: 'Logische Gatter',
+        description: 'AND, OR und NOT kennenlernen und ihre Ausgänge bestimmen.',
+      },
+      {
+        id: 102,
+        title: 'Wahrheitstabellen',
+        description: 'Alle Eingangskombinationen erfassen und die Ausgänge berechnen.',
+      },
+    ],
+  },
+  {
+    id: 2,
+    label: '2. Tag',
+    courses: [
+      {
+        id: 103,
+        title: 'Halbaddierer',
+        description: 'Mit XOR und AND eine Schaltung bauen, die zwei Bits addiert.',
+      },
+      {
+        id: 104,
+        title: 'Volladdierer',
+        description: 'Zwei Bits und einen eingehenden Übertrag addieren.',
+      },
+    ],
+  },
+])
 </script>
 
 <template>
@@ -210,45 +245,74 @@ onMounted(async () => {
           </div>
 
           <table class="w-full mt-4 border border-[var(--border-color)] border-collapse">
-            <tr
-              class="text-[var(--text-color-light)] bg-[var(--background-color)] border border-[var(--border-color)]"
-            >
-              <th>Lektion</th>
-              <th>Inhalt</th>
-              <th>
-                <Svg
-                  class="lift-hover cursor-pointer text-sm text-[var(--text-color-light)] w-[35px] h-[35px] rounded-lg bg-[var(--surface-color)] border border-dashed border-[var(--border-color)]"
-                >
-                  <i class="fa-solid fa-plus"></i>
-                </Svg>
-              </th>
-            </tr>
-            <tr v-for="i in 5" :key="i">
-              <td class="font-bold text-[var(--text-color)] text-base">{{ i }}</td>
-              <td>
-                <div
-                  class="cursor-grab select-none flex items-center justify-between gap-2 border border-dashed border-[var(--border-color)] px-3 py-2 rounded-lg"
-                >
-                  <div class="flex items-center gap-2">
-                    <Svg class="h-full text-xs text-[var(--text-color-light)]">
-                      <i class="fa-solid fa-grip-vertical"></i>
-                    </Svg>
-                    <div class="flex flex-col items-start justify-center">
-                      <span class="text-[var(--text-color)] font-medium">Logische Gatter</span>
-                      <span class="text-[var(--text-color-light)] text-sm"
-                        >AND, OR, NOT, XOR, und Wahrheitstabellen</span
-                      >
-                    </div>
-                  </div>
+            <thead>
+              <tr
+                class="text-[var(--text-color-light)] bg-[var(--background-color)] border border-[var(--border-color)]"
+              >
+                <th>Lektion</th>
+                <th>Inhalt</th>
+                <th>
                   <Svg
-                    class="hover:text-[var(--text-color)] hover:border-[var(--text-color)] transition duration-200 cursor-pointer text-[var(--text-color-light)] w-[35px] h-[35px] rounded-lg border border-[var(--border-color)] text-sm"
+                    class="lift-hover cursor-pointer text-sm text-[var(--text-color-light)] w-[35px] h-[35px] rounded-lg bg-[var(--surface-color)] border border-dashed border-[var(--border-color)]"
                   >
-                    <i class="fa-solid fa-pen"></i>
+                    <i class="fa-solid fa-plus"></i>
                   </Svg>
-                </div>
-              </td>
-              <td></td>
-            </tr>
+                </th>
+              </tr>
+            </thead>
+
+            <Draggable
+              v-for="day in days"
+              :key="day.id"
+              v-model="day.courses"
+              tag="tbody"
+              item-key="id"
+              group="courses"
+              handle=".drag-handle"
+              :animation="300"
+            >
+              <template #header>
+                <tr class="bg-[var(--background-color)]">
+                  <th colspan="3" scope="rowgroup" class="px-3 py-3 text-left">
+                    {{ day.label }}
+                    <span v-if="day.courses.length === 0" class="ml-2 text-sm font-normal">
+                      Kurs hier ablegen
+                    </span>
+                  </th>
+                </tr>
+              </template>
+
+              <template #item="{ element: course, index }">
+                <tr>
+                  <td class="px-3 py-2 text-center font-bold">{{ index + 1 }}</td>
+                  <td class="py-2">
+                    <div
+                      class="flex items-center justify-between gap-3 rounded-lg border border-dashed border-[var(--border-color)] px-3 py-2"
+                    >
+                      <div class="flex items-center justify-center gap-2">
+                        <Svg class="drag-handle cursor-grab" aria-hidden="true">
+                          <i class="fa-solid fa-grip-vertical"></i>
+                        </Svg>
+
+                        <div>
+                          <div class="font-medium">{{ course.title }}</div>
+                          <div class="text-sm text-[var(--text-color-light)]">
+                            {{ course.description }}
+                          </div>
+                        </div>
+                      </div>
+
+                      <Svg
+                        class="hover:text-[var(--text-color)] hover:border-[var(--text-color)] transition duration-200 cursor-pointer text-[var(--text-color-light)] w-[35px] h-[35px] rounded-lg border border-[var(--border-color)] text-sm"
+                      >
+                        <i class="fa-solid fa-pen"></i>
+                      </Svg>
+                    </div>
+                  </td>
+                  <td></td>
+                </tr>
+              </template>
+            </Draggable>
           </table>
         </div>
       </div>
