@@ -132,7 +132,7 @@ function removeLearningObjective(index: number) {
             </Svg>
             <div class="min-w-0">
               <span class="block text-sm sm:text-base text-[var(--text-color-light)]"> Modul </span>
-              <h1 class="text-2xl sm:text-3xl font-bold text-[var(--text-color)]">
+              <h1 class="text-2xl sm:text-3xl font-bold text-[var(--text-color)] break-words">
                 {{ moduleData?.code }} – {{ moduleData?.title }}
               </h1>
               <p class="mt-1 text-sm sm:text-base text-[var(--text-color-light)]">
@@ -166,6 +166,7 @@ function removeLearningObjective(index: number) {
             </button>
           </div>
         </div>
+        <!-- Responsiv: Trennlinien je nach Spaltenanzahl (1 / 2 / 3 / 5 Spalten) -->
         <div
           class="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] py-3"
         >
@@ -175,25 +176,33 @@ function removeLearningObjective(index: number) {
               moduleData?.code
             }}</span>
           </div>
-          <div class="border-l border-[var(--border-color)] px-5 py-2">
+          <div
+            class="border-t sm:border-t-0 sm:border-l border-[var(--border-color)] px-5 py-2"
+          >
             <span class="block text-[var(--text-color-light)]">Titel</span>
             <span class="mt-1 block text-sm text-base text-[var(--text-color)]">{{
               moduleData?.title
             }}</span>
           </div>
-          <div class="border-l border-[var(--border-color)] px-5 py-2">
+          <div
+            class="border-t sm:border-t-0 sm:border-l-0 lg:border-l border-[var(--border-color)] px-5 py-2"
+          >
             <span class="block text-[var(--text-color-light)]">Beschreibung</span>
             <span class="mt-1 block text-sm text-[var(--text-color)]">
               {{ moduleData?.description?.trim().slice(0, 120) }}
             </span>
           </div>
-          <div class="border-l border-[var(--border-color)] px-5 py-2">
+          <div
+            class="border-t sm:border-t-0 sm:border-l lg:border-l-0 xl:border-l border-[var(--border-color)] px-5 py-2"
+          >
             <span class="block text-[var(--text-color-light)]">Erstellt am</span>
             <span class="mt-1 block text-sm text-[var(--text-color)]">{{
               moduleData?.createdAt ?? 'Nicht gesetzt'
             }}</span>
           </div>
-          <div class="border-l border-[var(--border-color)] px-5 py-2">
+          <div
+            class="border-t sm:border-t-0 sm:border-l-0 lg:border-l border-[var(--border-color)] px-5 py-2"
+          >
             <span class="block text-[var(--text-color-light)]">Zuletzt bearbeitet</span>
             <span class="mt-1 block text-sm text-[var(--text-color)]">{{
               moduleData?.updatedAt ?? 'Nicht gesetzt'
@@ -201,7 +210,7 @@ function removeLearningObjective(index: number) {
           </div>
         </div>
         <div
-          class="overflow-hidden mt-6 flex gap-5 sm:gap-8 overflow-x-auto border-b border-[var(--border-color)]"
+          class="mt-6 flex gap-5 sm:gap-8 overflow-x-auto border-b border-[var(--border-color)]"
         >
           <button
             type="button"
@@ -284,7 +293,7 @@ function removeLearningObjective(index: number) {
           class="flex flex-col min-h-0 rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] px-5 pb-5"
         >
           <div
-            class="flex min-h-14 items-center justify-between gap-3 border-b border-[var(--border-color)]"
+            class="flex flex-wrap min-h-14 items-center justify-between gap-3 border-b border-[var(--border-color)]"
           >
             <h2 class="text-lg font-bold text-[var(--text-color)]">Modulbeschreibung</h2>
 
@@ -320,7 +329,7 @@ function removeLearningObjective(index: number) {
               :disabled="!descriptionEditIsOn"
               aria-label="Modulbeschreibung"
               maxlength="500"
-              class="w-full h-full outline-0 text-wrap flex-1 resize-none"
+              class="w-full h-full min-h-32 outline-0 text-wrap flex-1 resize-none"
             />
           </div>
         </section>
@@ -330,11 +339,11 @@ function removeLearningObjective(index: number) {
         class="rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] px-5 pb-5"
       >
         <div
-          class="flex min-h-14 items-center justify-between gap-3 border-b border-[var(--border-color)]"
+          class="flex flex-wrap min-h-14 items-center justify-between gap-3 border-b border-[var(--border-color)]"
         >
           <h2 class="text-lg font-bold text-[var(--text-color)]">Lernziele</h2>
 
-          <div class="flex items-center justify-center gap-2">
+          <div class="flex flex-wrap items-center justify-center gap-2">
             <button
               v-if="learningObjEditIsOn"
               @click.stop="addLearningObj"
@@ -379,12 +388,12 @@ function removeLearningObjective(index: number) {
               :disabled="!learningObjEditIsOn"
               :readonly="!learningObjEditIsOn"
               alt="lernziel"
-              class="w-[500px] focus:outline-1 outline-[var(--primary-color)] border border-[var(--primary-color)] rounded-lg px-2 py-1"
+              class="w-full min-w-0 max-w-[500px] focus:outline-1 outline-[var(--primary-color)] border border-[var(--primary-color)] rounded-lg px-2 py-1"
             />
             <Svg
               v-if="learningObjEditIsOn"
               @click="removeLearningObjective(i)"
-              class="lift-hover w-[35px] h-[35px] rounded-lg bg-[var(--error-color-light)] text-[var(--error-color)] cursor-pointer"
+              class="lift-hover w-[35px] h-[35px] shrink-0 rounded-lg bg-[var(--error-color-light)] text-[var(--error-color)] cursor-pointer"
             >
               <i class="fa-solid fa-trash-can"></i>
             </Svg>
