@@ -116,7 +116,7 @@ const themes = [
   {
     id: 'system',
     label: 'System',
-    description: 'passt sich am System an.',
+    description: 'Passt sich am System an.',
     icon: 'fa-solid fa-desktop',
     system: true,
     layers: [
