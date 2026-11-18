@@ -65,7 +65,7 @@ const days = ref([
   <AppNavbar></AppNavbar>
 
   <SectionComp>
-    <header class="mx-8 my-8 flex items-center justify-between gap-5">
+    <header class="mx-4 my-6 flex items-center justify-between gap-5 sm:mx-8 sm:my-8">
       <div class="flex flex-col gap-3">
         <h1 class="text-[var(--text-color)]">Grobplanung</h1>
         <p class="text-[var(--text-color-light)] font-medium">
@@ -93,11 +93,13 @@ const days = ref([
       <!--      </div>-->
     </header>
 
-    <div class="mx-8 my-8">
+    <div class="mx-4 my-6 sm:mx-8 sm:my-8">
       <div
-        class="grid grid-cols-4 w-full h-full bg-[var(--surface-color)] border border-[var(--border-color)] rounded-xl shadow-lg p-5"
+        class="grid grid-cols-1 lg:grid-cols-4 w-full h-full bg-[var(--surface-color)] border border-[var(--border-color)] rounded-xl shadow-lg p-4 sm:p-5"
       >
-        <div class="col-span-2 px-3 pr-6 border border-transparent border-r-[var(--border-color)]">
+        <div
+          class="mb-6 lg:mb-0 lg:col-span-2 px-0 lg:px-3 lg:pr-6 border border-transparent lg:border-r-[var(--border-color)]"
+        >
           <h2>Organisatorisch</h2>
 
           <Divider color="var(--border-color)" class="my-3"></Divider>
@@ -127,9 +129,9 @@ const days = ref([
           </div>
 
           <Divider color="var(--border-color)" class="my-3"></Divider>
-          <div class="grid grid-cols-3 w-full">
+          <div class="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-0 w-full">
             <span class="col-span-1 w-fit font-semibold text-[var(--text-color-light)]">Daten</span>
-            <div class="flex flex-wrap col-span-2 gap-2 items-center">
+            <div class="flex flex-wrap sm:col-span-2 gap-2 items-center">
               <div
                 class="px-3 py-1 w-fit flex gap-2 bg-[var(--background-color)] border border-[var(--border-color)] rounded-lg"
               >
@@ -153,17 +155,17 @@ const days = ref([
           </div>
         </div>
 
-        <div class="col-span-2 px-3 pl-6">
+        <div class="lg:col-span-2 px-0 lg:px-3 lg:pl-6">
           <h2>Inhalt</h2>
 
           <Divider color="var(--border-color)" class="my-3"></Divider>
 
-          <div class="grid grid-cols-3 w-full">
+          <div class="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-0 w-full">
             <span class="col-span-1 w-fit font-semibold text-[var(--text-color-light)]">Modul</span>
             <div
-              class="hover:text-[var(--text-color)] transition duration-75 text-[var(--text-color-light)] cursor-pointer col-span-2 flex gap-2 items-center"
+              class="hover:text-[var(--text-color)] transition duration-75 text-[var(--text-color-light)] cursor-pointer sm:col-span-2 flex gap-2 items-center"
             >
-              <div class="px-2 py-1 w-fit flex gap-2">
+              <div class="px-0 sm:px-2 py-1 w-fit flex gap-2">
                 <p class="font-semibold">
                   <span
                     class="select-none h-fit w-fit text-xs font-bold bg-gray-100 rounded-sm px-2 py-1 mr-1 mb-1"
@@ -173,7 +175,7 @@ const days = ref([
                   Codierungs-, Kompressions- und Verschlüsselungsverfahren einsetzen.
                 </p>
               </div>
-              <Svg class="text-sm">
+              <Svg class="text-sm shrink-0">
                 <i class="fa-solid fa-arrow-up-right-from-square"></i>
               </Svg>
             </div>
@@ -181,12 +183,12 @@ const days = ref([
 
           <Divider color="var(--border-color)" class="my-3"></Divider>
 
-          <div class="grid grid-cols-3 w-full">
+          <div class="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-0 w-full">
             <span class="col-span-1 w-fit font-semibold text-[var(--text-color-light)]"
               >Kurskontrolle</span
             >
             <div
-              class="hover:text-[var(--text-color)] transition duration-75 text-[var(--text-color-light)] col-span-2 flex flex-wrap gap-2 items-center"
+              class="hover:text-[var(--text-color)] transition duration-75 text-[var(--text-color-light)] sm:col-span-2 flex flex-wrap gap-2 items-center"
             >
               <div
                 class="cursor-pointer border border-[var(--border-color)] rounded-lg text-sm font-semibold px-2 py-1 w-fit flex items-center gap-1"
@@ -203,10 +205,12 @@ const days = ref([
         <Divider color="var(--border-color)" class="col-span-full my-3"></Divider>
 
         <div class="col-span-full">
-          <div class="flex items-center justify-between">
+          <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2>Planung</h2>
 
-            <div class="flex gap-3 items-center">
+            <div
+              class="flex w-full flex-col items-start gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3"
+            >
               <div class="flex gap-1 items-center">
                 <div class="w-[7px] h-[7px] rounded-full bg-[var(--secondary-color)]"></div>
                 <span class="text-sm font-medium text-[var(--text-color-light)]"
@@ -215,7 +219,7 @@ const days = ref([
               </div>
 
               <div
-                class="px-2 py-2 border border-[var(--border-color)] rounded-lg flex text-[var(--text-color-light)]"
+                class="px-2 py-2 border border-[var(--border-color)] rounded-lg flex w-full justify-between sm:w-auto sm:justify-start text-[var(--text-color-light)]"
               >
                 <Svg class="text-sm cursor-pointer">
                   <i class="fa-solid fa-angle-left"></i>
@@ -237,7 +241,7 @@ const days = ref([
             </div>
           </div>
 
-          <div class="flex items-center gap-1 text-xs text-[var(--text-color-light)]">
+          <div class="mt-3 flex items-center gap-1 text-xs text-[var(--text-color-light)] sm:mt-0">
             <Svg>
               <i class="fa-solid fa-circle-info"></i>
             </Svg>
@@ -287,14 +291,14 @@ const days = ref([
                   <td class="px-3 py-2 text-center font-bold">{{ index + 1 }}</td>
                   <td class="py-2">
                     <div
-                      class="flex items-center justify-between gap-3 rounded-lg border border-dashed border-[var(--border-color)] px-3 py-2"
+                      class="flex items-center justify-between gap-3 rounded-lg border border-dashed border-[var(--border-color)] px-2 py-2 sm:px-3"
                     >
-                      <div class="flex items-center justify-center gap-2">
-                        <Svg class="drag-handle cursor-grab" aria-hidden="true">
+                      <div class="flex min-w-0 items-center justify-center gap-2">
+                        <Svg class="drag-handle shrink-0 cursor-grab" aria-hidden="true">
                           <i class="fa-solid fa-grip-vertical"></i>
                         </Svg>
 
-                        <div>
+                        <div class="min-w-0">
                           <div class="font-medium">{{ course.title }}</div>
                           <div class="text-sm text-[var(--text-color-light)]">
                             {{ course.description }}
@@ -303,7 +307,7 @@ const days = ref([
                       </div>
 
                       <Svg
-                        class="hover:text-[var(--text-color)] hover:border-[var(--text-color)] transition duration-200 cursor-pointer text-[var(--text-color-light)] w-[35px] h-[35px] rounded-lg border border-[var(--border-color)] text-sm"
+                        class="hover:text-[var(--text-color)] hover:border-[var(--text-color)] transition duration-200 cursor-pointer shrink-0 text-[var(--text-color-light)] w-[35px] h-[35px] rounded-lg border border-[var(--border-color)] text-sm"
                       >
                         <i class="fa-solid fa-pen"></i>
                       </Svg>
@@ -326,5 +330,13 @@ th {
   padding: 10px;
   text-align: left;
   border: 1px solid var(--border-color);
+}
+
+
+@media (max-width: 639px) {
+  td,
+  th {
+    padding: 6px;
+  }
 }
 </style>

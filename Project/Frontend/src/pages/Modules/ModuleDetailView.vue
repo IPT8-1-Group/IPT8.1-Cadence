@@ -123,7 +123,7 @@ function removeLearningObjective(index: number) {
         <div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-5">
           <div class="flex items-start gap-4 sm:gap-6 min-w-0">
             <Svg
-              class="h-16 w-16 sm:h-20 sm:w-20 lg:h-[102px] lg:w-[108px] shrink-0 rounded-xl bg-[var(--secondary-color-light,#FFF2E0)] text-[var(--secondary-color,#F2A51D)]"
+              class="h-14 w-14 sm:h-20 sm:w-20 lg:h-[102px] lg:w-[108px] shrink-0 rounded-xl bg-[var(--secondary-color-light,#FFF2E0)] text-[var(--secondary-color,#F2A51D)]"
             >
               <i
                 :class="getModuleIcon(moduleData?.title ?? '')"
@@ -132,7 +132,7 @@ function removeLearningObjective(index: number) {
             </Svg>
             <div class="min-w-0">
               <span class="block text-sm sm:text-base text-[var(--text-color-light)]"> Modul </span>
-              <h1 class="text-2xl sm:text-3xl font-bold text-[var(--text-color)] break-words">
+              <h1 class="text-[22px] sm:text-3xl font-bold text-[var(--text-color)] break-words">
                 {{ moduleData?.code }} – {{ moduleData?.title }}
               </h1>
               <p class="mt-1 text-sm sm:text-base text-[var(--text-color-light)]">
@@ -141,25 +141,27 @@ function removeLearningObjective(index: number) {
             </div>
           </div>
 
-          <div class="flex flex-wrap items-center gap-2">
+          <div class="flex w-full flex-nowrap items-center gap-2 sm:w-auto sm:flex-wrap">
             <button
               type="button"
-              class="lift-hover flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color)] shadow-sm"
+              class="lift-hover flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color)] shadow-sm min-h-11 flex-1 justify-center sm:min-h-0 sm:flex-none"
             >
               <i class="fa-solid fa-pencil"></i>
               Bearbeiten
             </button>
             <button
               type="button"
-              class="lift-hover flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color)] shadow-sm"
+              aria-label="Kopieren"
+              title="Kopieren"
+              class="lift-hover flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color)] shadow-sm h-11 w-11 shrink-0 justify-center px-0 sm:h-10 sm:w-auto sm:px-3"
             >
               <i class="fa-regular fa-copy"></i>
-              Kopieren
+              <span class="hidden sm:inline">Kopieren</span>
             </button>
             <button
               @click="deleteModule"
               type="button"
-              class="lift-hover flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[#F08A8A] bg-[var(--surface-color)] px-3 text-sm text-[#E5383B] shadow-sm"
+              class="lift-hover flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[#F08A8A] bg-[var(--surface-color)] px-3 text-sm text-[#E5383B] shadow-sm min-h-11 flex-1 justify-center sm:min-h-0 sm:flex-none"
             >
               <i class="fa-regular fa-trash-can"></i>
               Löschen
@@ -168,7 +170,7 @@ function removeLearningObjective(index: number) {
         </div>
         <!-- Responsiv: Trennlinien je nach Spaltenanzahl (1 / 2 / 3 / 5 Spalten) -->
         <div
-          class="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] py-3"
+          class="mt-5 hidden sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] py-3"
         >
           <div class="px-5 py-2">
             <span class="block text-[var(--text-color-light)]">Modulnummer</span>
@@ -249,41 +251,52 @@ function removeLearningObjective(index: number) {
           >
             Statistik
           </h2>
-          <div class="flex flex-col gap-3 pt-3">
-            <div class="flex items-center gap-5">
-              <Svg class="h-12 w-12 shrink-0 rounded-full bg-[#EEF1F6] text-[var(--text-color)]">
-                <i class="fa-solid fa-graduation-cap text-xl"></i>
-              </Svg>
+          <div class="flex flex-row justify-between gap-3 pt-3 sm:flex-col">
+            <div class="flex flex-1 flex-col items-center gap-1 text-center sm:flex-none sm:flex-row sm:gap-5 sm:text-left">
+              <div class="hidden sm:block">
+                <Svg class="h-12 w-12 shrink-0 rounded-full bg-[#EEF1F6] text-[var(--text-color)]">
+                  <i class="fa-solid fa-graduation-cap text-xl"></i>
+                </Svg>
+              </div>
               <div>
-                <span class="block text-lg font-bold text-[var(--text-color)]">{{
+                <span class="block text-[22px] font-bold text-[var(--text-color)] sm:text-lg">{{
                   moduleData?.statistics.courseCount
                 }}</span>
-                <span class="block text-sm text-[var(--text-color-light)]">Kurse</span>
-              </div>
-            </div>
-            <div class="flex items-center gap-5">
-              <Svg class="h-12 w-12 shrink-0 rounded-full bg-[#EEF1F6] text-[var(--text-color)]">
-                <i class="fa-regular fa-calendar text-xl"></i>
-              </Svg>
-              <div>
-                <span class="block text-lg font-bold text-[var(--text-color)]">{{
-                  moduleData?.statistics.dayCount
-                }}</span>
-                <span class="block text-sm text-[var(--text-color-light)]">
-                  Planungstage (gesamt)
+                <span class="block text-xs text-[var(--text-color-light)] sm:text-sm">
+                  <span class="sm:hidden">Kurse</span>
+                  <span class="hidden sm:inline">Kurse</span>
                 </span>
               </div>
             </div>
-            <div class="flex items-center gap-5">
-              <Svg class="h-12 w-12 shrink-0 rounded-full bg-[#EEF1F6] text-[var(--text-color)]">
-                <i class="fa-regular fa-file-lines text-xl"></i>
-              </Svg>
+            <div class="flex flex-1 flex-col items-center gap-1 text-center sm:flex-none sm:flex-row sm:gap-5 sm:text-left">
+              <div class="hidden sm:block">
+                <Svg class="h-12 w-12 shrink-0 rounded-full bg-[#EEF1F6] text-[var(--text-color)]">
+                  <i class="fa-regular fa-calendar text-xl"></i>
+                </Svg>
+              </div>
               <div>
-                <span class="block text-lg font-bold text-[var(--text-color)]">{{
+                <span class="block text-[22px] font-bold text-[var(--text-color)] sm:text-lg">{{
+                  moduleData?.statistics.dayCount
+                }}</span>
+                <span class="block text-xs text-[var(--text-color-light)] sm:text-sm">
+                  <span class="sm:hidden">Planungstage</span>
+                  <span class="hidden sm:inline">Planungstage (gesamt)</span>
+                </span>
+              </div>
+            </div>
+            <div class="flex flex-1 flex-col items-center gap-1 text-center sm:flex-none sm:flex-row sm:gap-5 sm:text-left">
+              <div class="hidden sm:block">
+                <Svg class="h-12 w-12 shrink-0 rounded-full bg-[#EEF1F6] text-[var(--text-color)]">
+                  <i class="fa-regular fa-file-lines text-xl"></i>
+                </Svg>
+              </div>
+              <div>
+                <span class="block text-[22px] font-bold text-[var(--text-color)] sm:text-lg">{{
                   moduleData?.statistics.detailedEntryCount
                 }}</span>
-                <span class="block text-sm text-[var(--text-color-light)]">
-                  Unterrichtssequenzen (gesamt)
+                <span class="block text-xs text-[var(--text-color-light)] sm:text-sm">
+                  <span class="sm:hidden">Sequenzen</span>
+                  <span class="hidden sm:inline">Unterrichtssequenzen (gesamt)</span>
                 </span>
               </div>
             </div>
@@ -388,7 +401,7 @@ function removeLearningObjective(index: number) {
               :disabled="!learningObjEditIsOn"
               :readonly="!learningObjEditIsOn"
               alt="lernziel"
-              class="w-full min-w-0 max-w-[500px] focus:outline-1 outline-[var(--primary-color)] border border-[var(--primary-color)] rounded-lg px-2 py-1"
+              class="w-full min-w-0 max-w-[500px] disabled:border-transparent disabled:px-0 sm:disabled:border-[var(--primary-color)] sm:disabled:px-2 focus:outline-1 outline-[var(--primary-color)] border border-[var(--primary-color)] rounded-lg px-2 py-1"
             />
             <Svg
               v-if="learningObjEditIsOn"

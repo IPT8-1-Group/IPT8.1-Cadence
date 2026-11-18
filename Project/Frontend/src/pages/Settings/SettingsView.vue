@@ -126,7 +126,7 @@ const themes = [
   <AppNavbar></AppNavbar>
 
   <SectionComp>
-    <header class="mx-8 mb-10 mt-10 flex max-w-2xl flex-col items-start gap-3">
+    <header class="mx-4 mb-8 mt-8 flex max-w-2xl flex-col items-start gap-3 sm:mx-8 sm:mb-10 sm:mt-10">
       <span class="subtitle text-[var(--text-color-light)]">
         Konto &amp; Einstellungen
       </span>
@@ -138,14 +138,14 @@ const themes = [
       </p>
     </header>
 
-    <div class="mx-8 mb-16 grid grid-cols-1 gap-8 lg:grid-cols-[224px_1fr]">
+    <div class="mx-4 mb-12 grid grid-cols-1 gap-6 sm:mx-8 sm:mb-16 lg:grid-cols-[224px_1fr] lg:gap-8">
 
       <!-- Side navigation -->
       <nav aria-label="Einstellungen" class="lg:sticky lg:top-24 lg:self-start">
         <ul class="flex gap-1 overflow-x-auto lg:flex-col">
 
           <!-- My Account(Sidebar) -->
-          <li>
+          <li class="shrink-0">
             <a href="#account" @click.prevent="navigateTo('account')"
               class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-colors duration-200" :class="activeSection === 'account'
                 ? 'bg-[var(--secondary-color-light)] font-semibold text-[var(--secondary-color)]'
@@ -157,7 +157,7 @@ const themes = [
           </li>
 
           <!-- Security(Sidebar) -->
-          <li>
+          <li class="shrink-0">
             <a href="#security" @click.prevent="navigateTo('security')"
               class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-colors duration-200" :class="activeSection === 'security'
                 ? 'bg-[var(--secondary-color-light)] font-semibold text-[var(--secondary-color)]'
@@ -169,7 +169,7 @@ const themes = [
           </li>
 
           <!-- Appearance(Sidebar) -->
-          <li>
+          <li class="shrink-0">
             <a href="#appearance" @click.prevent="navigateTo('appearance')"
               class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-colors duration-200" :class="activeSection === 'appearance'
                 ? 'bg-[var(--secondary-color-light)] font-semibold text-[var(--secondary-color)]'
@@ -188,9 +188,9 @@ const themes = [
         <!-- Account -->
         <section id="account"
           class="scroll-mt-24 overflow-hidden rounded-3xl border border-[var(--border-color)] bg-[var(--surface-color)] shadow-sm">
-          <div class="p-8">
+          <div class="p-5 sm:p-8">
 
-            <header class="mb-8 flex items-start gap-4">
+            <header class="mb-6 flex items-start gap-4 sm:mb-8">
               <div
                 class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--secondary-color-light)] text-[var(--secondary-color)]">
                 <i class="fa-regular fa-user"></i>
@@ -255,7 +255,7 @@ const themes = [
           </div>
 
           <footer
-            class="flex items-center justify-end gap-3 border-t border-[var(--border-color)] bg-[var(--background-color)]/50 px-8 py-4">
+            class="flex items-center justify-end gap-3 border-t border-[var(--border-color)] bg-[var(--background-color)]/50 px-5 py-4 sm:px-8">
             <button type="button" disabled
               class="cursor-not-allowed rounded-xl bg-[var(--primary-color)] px-5 py-2.5 text-sm font-semibold text-[var(--text-color-white)] opacity-40">
               Änderungen speichern
@@ -266,9 +266,9 @@ const themes = [
         <!-- Security -->
         <section id="security"
           class="scroll-mt-24 overflow-hidden rounded-3xl border border-[var(--border-color)] bg-[var(--surface-color)] shadow-sm">
-          <div class="p-8">
+          <div class="p-5 sm:p-8">
 
-            <header class="mb-8 flex items-start gap-4">
+            <header class="mb-6 flex items-start gap-4 sm:mb-8">
               <div
                 class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--secondary-color-light)] text-[var(--secondary-color)]">
                 <i class="fa-solid fa-shield-halved"></i>
@@ -367,7 +367,7 @@ const themes = [
           </div>
 
           <footer
-            class="flex items-center justify-end gap-3 border-t border-[var(--border-color)] bg-[var(--background-color)]/50 px-8 py-4">
+            class="flex items-center justify-end gap-3 border-t border-[var(--border-color)] bg-[var(--background-color)]/50 px-5 py-4 sm:px-8">
             <button type="button"
               class="cursor-pointer rounded-xl bg-[var(--primary-color)] px-5 py-2.5 text-sm font-semibold text-[var(--text-color-white)] transition duration-200 hover:bg-[var(--primary-color-light)]">
               Passwort ändern
@@ -378,9 +378,9 @@ const themes = [
         <!-- Appearance -->
         <section id="appearance"
           class="scroll-mt-24 overflow-hidden rounded-3xl border border-[var(--border-color)] bg-[var(--surface-color)] shadow-sm">
-          <div class="p-8">
+          <div class="p-5 sm:p-8">
 
-            <header class="mb-8 flex items-start gap-4">
+            <header class="mb-6 flex items-start gap-4 sm:mb-8">
               <div
                 class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--secondary-color-light)] text-[var(--secondary-color)]">
                 <i class="fa-solid fa-palette"></i>
