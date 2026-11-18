@@ -8,11 +8,57 @@ import {
   getThemePreference,
   type ThemePreference,
 } from '@/utils/theme.ts'
+import { useAuthStore } from '@/stores/authStore.ts'
 
 // Password visibility
 const showCurrentPassword = ref(false)
 const showNewPassword = ref(false)
 const showConfirmPassword = ref(false)
+const currentPassword = ref('')
+const newPassword = ref('')
+const confirmPassword = ref('')
+const passwordMessage = ref<{ type: 'success' | 'error'; text: string } | null>(null)
+
+const authStore = useAuthStore()
+
+async function changePassword() {
+  passwordMessage.value = null
+
+  if (!currentPassword.value || !newPassword.value || !confirmPassword.value) {
+    passwordMessage.value = { type: 'error', text: 'Alle Passwortfelder müssen ausgefüllt sein.' }
+    return
+  }
+
+  if (newPassword.value.length < 8) {
+    passwordMessage.value = { type: 'error', text: 'Das neue Passwort muss mindestens 8 Zeichen lang sein.' }
+    return
+  }
+
+  if (newPassword.value !== confirmPassword.value) {
+    passwordMessage.value = { type: 'error', text: 'Die neuen Passwörter stimmen nicht überein.' }
+    return
+  }
+
+  if (newPassword.value === currentPassword.value) {
+    passwordMessage.value = { type: 'error', text: 'Das neue Passwort muss sich vom aktuellen unterscheiden.' }
+    return
+  }
+
+  const result = await authStore.changePassword(currentPassword.value, newPassword.value)
+
+  if (!result) {
+    passwordMessage.value = {
+      type: 'error',
+      text: authStore.error ?? 'Das Passwort konnte nicht geändert werden.',
+    }
+    return
+  }
+
+  passwordMessage.value = { type: 'success', text: 'Passwort erfolgreich geändert.' }
+  currentPassword.value = ''
+  newPassword.value = ''
+  confirmPassword.value = ''
+}
 
 // Active navigation section
 const activeSection = ref('account')
@@ -312,6 +358,8 @@ function selectTheme(theme: ThemePreference) {
                   </Svg>
 
                   <input id="current-password" :type="showCurrentPassword ? 'text' : 'password'"
+                    v-model="currentPassword"
+                    autocomplete="current-password"
                     class="h-full min-w-0 flex-1 bg-transparent text-sm text-[var(--text-color)] outline-none" />
 
                   <button type="button" :aria-label="showCurrentPassword ? 'Passwort verbergen' : 'Passwort anzeigen'"
@@ -336,6 +384,8 @@ function selectTheme(theme: ThemePreference) {
                   </Svg>
 
                   <input id="new-password" :type="showNewPassword ? 'text' : 'password'"
+                    v-model="newPassword"
+                    autocomplete="new-password"
                     class="h-full min-w-0 flex-1 bg-transparent text-sm text-[var(--text-color)] outline-none" />
 
                   <button type="button" :aria-label="showNewPassword ? 'Passwort verbergen' : 'Passwort anzeigen'"
@@ -364,6 +414,8 @@ function selectTheme(theme: ThemePreference) {
                   </Svg>
 
                   <input id="confirm-password" :type="showConfirmPassword ? 'text' : 'password'"
+                    v-model="confirmPassword"
+                    autocomplete="new-password"
                     class="h-full min-w-0 flex-1 bg-transparent text-sm text-[var(--text-color)] outline-none" />
 
                   <button type="button" :aria-label="showConfirmPassword ? 'Passwort verbergen' : 'Passwort anzeigen'"
@@ -379,10 +431,18 @@ function selectTheme(theme: ThemePreference) {
           </div>
 
           <footer
-            class="flex items-center justify-end gap-3 border-t border-[var(--border-color)] bg-[var(--background-color)]/50 px-5 py-4 sm:px-8">
+            class="flex flex-wrap items-center justify-end gap-3 border-t border-[var(--border-color)] bg-[var(--background-color)]/50 px-5 py-4 sm:px-8">
+            <p v-if="passwordMessage"
+              class="mr-auto text-sm"
+              :class="passwordMessage.type === 'success' ? 'text-[var(--success-color)]' : 'text-[var(--error-color)]'"
+              role="status">
+              {{ passwordMessage.text }}
+            </p>
             <button type="button"
-              class="cursor-pointer rounded-xl bg-[var(--primary-color)] px-5 py-2.5 text-sm font-semibold text-[var(--text-color-white)] transition duration-200 hover:bg-[var(--primary-color-light)]">
-              Passwort ändern
+              :disabled="authStore.loading"
+              @click="changePassword"
+              class="cursor-pointer rounded-xl bg-[var(--primary-color)] px-5 py-2.5 text-sm font-semibold text-[var(--text-color-white)] transition duration-200 hover:bg-[var(--primary-color-light)] disabled:cursor-not-allowed disabled:opacity-50">
+              {{ authStore.loading ? 'Wird geändert...' : 'Passwort ändern' }}
             </button>
           </footer>
         </section>
