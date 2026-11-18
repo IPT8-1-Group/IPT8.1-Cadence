@@ -3,6 +3,11 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import AppNavbar from '@/components/layout/AppNavbar.vue'
 import SectionComp from '@/components/ui/SectionComp.vue'
 import Svg from '@/components/ui/Svg.vue'
+import {
+  applyThemePreference,
+  getThemePreference,
+  type ThemePreference,
+} from '@/utils/theme.ts'
 
 // Password visibility
 const showCurrentPassword = ref(false)
@@ -93,33 +98,40 @@ const palettes = {
 
 const themes = [
   {
+    id: 'light',
     label: 'Hell',
     description: 'Helle Benutzeroberfläche.',
     icon: 'fa-regular fa-sun',
-    selected: true,
     system: false,
     layers: [{ p: palettes.light, clip: undefined as string | undefined }],
   },
   {
+    id: 'dark',
     label: 'Dunkel',
     description: 'Dunkle Benutzeroberfläche.',
     icon: 'fa-regular fa-moon',
-    selected: false,
     system: false,
     layers: [{ p: palettes.dark, clip: undefined as string | undefined }],
   },
   {
+    id: 'system',
     label: 'System',
-    description: 'Passt sich automatisch an die Systemeinstellung an.',
+    description: 'passt sich am System an.',
     icon: 'fa-solid fa-desktop',
-    selected: false,
     system: true,
     layers: [
       { p: palettes.light, clip: undefined as string | undefined },
       { p: palettes.dark, clip: 'polygon(62% 0, 100% 0, 100% 100%, 38% 100%)' },
     ],
   },
-]
+] as const
+
+const selectedTheme = ref<ThemePreference>(getThemePreference())
+
+function selectTheme(theme: ThemePreference) {
+  selectedTheme.value = theme
+  applyThemePreference(theme)
+}
 </script>
 
 <template>
@@ -187,12 +199,12 @@ const themes = [
 
         <!-- Account -->
         <section id="account"
-          class="scroll-mt-24 overflow-hidden rounded-3xl border border-[var(--border-color)] bg-[var(--surface-color)] shadow-sm">
+          class="scroll-mt-24 overflow-hidden rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] shadow-sm">
           <div class="p-5 sm:p-8">
 
             <header class="mb-6 flex items-start gap-4 sm:mb-8">
               <div
-                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--secondary-color-light)] text-[var(--secondary-color)]">
+                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--secondary-color-light)] text-[var(--secondary-color)]">
                 <i class="fa-regular fa-user"></i>
               </div>
 
@@ -265,12 +277,12 @@ const themes = [
 
         <!-- Security -->
         <section id="security"
-          class="scroll-mt-24 overflow-hidden rounded-3xl border border-[var(--border-color)] bg-[var(--surface-color)] shadow-sm">
+          class="scroll-mt-24 overflow-hidden rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] shadow-sm">
           <div class="p-5 sm:p-8">
 
             <header class="mb-6 flex items-start gap-4 sm:mb-8">
               <div
-                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--secondary-color-light)] text-[var(--secondary-color)]">
+                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--secondary-color-light)] text-[var(--secondary-color)]">
                 <i class="fa-solid fa-shield-halved"></i>
               </div>
 
@@ -377,12 +389,12 @@ const themes = [
 
         <!-- Appearance -->
         <section id="appearance"
-          class="scroll-mt-24 overflow-hidden rounded-3xl border border-[var(--border-color)] bg-[var(--surface-color)] shadow-sm">
+          class="scroll-mt-24 overflow-hidden rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] shadow-sm">
           <div class="p-5 sm:p-8">
 
             <header class="mb-6 flex items-start gap-4 sm:mb-8">
               <div
-                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--secondary-color-light)] text-[var(--secondary-color)]">
+                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--secondary-color-light)] text-[var(--secondary-color)]">
                 <i class="fa-solid fa-palette"></i>
               </div>
 
@@ -401,8 +413,9 @@ const themes = [
 
               <!-- Theme options -->
               <button v-for="t in themes" :key="t.label" type="button"
-                class="group flex cursor-pointer flex-col gap-4 rounded-2xl border-2 bg-[var(--surface-color)] p-3 text-left transition duration-200 hover:border-[var(--secondary-color)]/60"
-                :class="t.selected
+                @click="selectTheme(t.id)"
+                class="group flex cursor-pointer flex-col gap-4 rounded-xl border-2 bg-[var(--surface-color)] p-3 text-left transition duration-200 hover:border-[var(--secondary-color)]/60"
+                :class="selectedTheme === t.id
                   ? 'border-[var(--secondary-color)] shadow-sm'
                   : 'border-[var(--border-color)]'
                   ">
@@ -455,7 +468,7 @@ const themes = [
                   </div>
 
                   <!-- Selected theme indicator -->
-                  <span v-if="t.selected"
+                  <span v-if="selectedTheme === t.id"
                     class="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--secondary-color)] text-xs text-[var(--text-color-white)]">
                     <i class="fa-solid fa-check"></i>
                   </span>
@@ -463,7 +476,7 @@ const themes = [
 
                 <!-- Theme information -->
                 <div class="flex items-start gap-3 px-1 pb-1">
-                  <Svg class="mt-0.5" :class="t.selected
+                  <Svg class="mt-0.5" :class="selectedTheme === t.id
                     ? 'text-[var(--secondary-color)]'
                     : 'text-[var(--text-color-light)]'
                     ">
@@ -483,8 +496,8 @@ const themes = [
 
             </div>
 
-            <p class="mt-6 flex items-center gap-2 text-xs text-[var(--text-color-light)]">
-              <i class="fa-regular fa-circle-check text-[var(--secondary-color)]"></i>
+            <p class="mt-6 flex items-center gap-2 text-xs text-[var(--text-color-light)]  ">
+              <i class="fa-regular fa-circle-check text-[var(--secondary-color)] "></i>
               Deine Auswahl wird automatisch gespeichert und bleibt auch nach einer erneuten Anmeldung erhalten.
             </p>
 

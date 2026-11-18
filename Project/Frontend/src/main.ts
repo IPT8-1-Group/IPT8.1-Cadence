@@ -7,6 +7,9 @@ import { useAuthStore } from '@/stores/authStore.ts'
 
 import './styles/main.css'
 import './styles/variables.css'
+import { initializeTheme } from '@/utils/theme.ts'
+
+initializeTheme()
 
 async function startApp() {
   const app = createApp(App)
