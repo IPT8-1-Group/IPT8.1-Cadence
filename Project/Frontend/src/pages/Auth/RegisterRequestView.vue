@@ -71,20 +71,21 @@ async function sendRegisterRequest() {
     </RouterLink>
   </header>
 
-  <SectionComp class="h-screen flex items-center justify-center">
+  <SectionComp class="min-h-screen px-4 py-28 sm:px-6 lg:py-8 flex items-center justify-center">
     <img
       src="../../assets/images/bg-auth.svg"
       alt="background image register page"
-      class="fixed inset-x-0 bottom-0 -z-1"
+      class="fixed inset-x-0 bottom-0 -z-1 max-w-full"
     />
 
     <div
-      class="max-w-[800px] w-full bg-[var(--surface-color)] shadow-xl rounded-xl px-8 py-7 flex flex-row-reverse gap-4"
+      class="max-w-[800px] w-full bg-[var(--surface-color)] shadow-xl rounded-xl px-5 py-6 sm:px-8 sm:py-7 flex flex-col-reverse md:flex-row-reverse gap-4"
     >
       <div
-        class="min-w-[320px] min-h-full border border-transparent border-l-[var(--border-color)] px-4 py-3 flex items-center justify-center gap-6"
+        class="md:min-w-[320px] md:min-h-full border border-transparent border-t-[var(--border-color)] md:border-t-transparent md:border-l-[var(--border-color)] px-0 pt-6 md:px-4 md:py-3 flex items-center justify-start md:justify-center gap-6"
       >
-        <div class="flex flex-col gap-1 items-center justify-start h-fit w-fit -mt-23">
+        <!-- Nummern-Leiste: erst ab md sichtbar, weil sie an die Höhe der Schritte rechts gebunden ist -->
+        <div class="hidden md:flex flex-col gap-1 items-center justify-start h-fit w-fit -mt-23">
           <Svg
             class="text-sm w-fit min-w-[25px] min-h-[25px] bg-[var(--secondary-color)] text-[var(--text-color-white)] rounded-full"
           >
@@ -180,7 +181,7 @@ async function sendRegisterRequest() {
           </div>
         </div>
       </div>
-      <div>
+      <div class="min-w-0">
         <h1 class="mt-4 text-[var(--text-color)]">Zugang anfragen</h1>
 
         <p class="text-[var(--text-color-light)] text-sm my-4">
@@ -189,7 +190,7 @@ async function sendRegisterRequest() {
         </p>
 
         <form class="flex flex-col w-full gap-3" @submit.prevent="sendRegisterRequest">
-          <div class="w-full flex items-center justify-between gap-2">
+          <div class="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-2">
             <InputComp
               v-model="firstName"
               :required="true"
