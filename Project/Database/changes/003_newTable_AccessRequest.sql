@@ -1,7 +1,4 @@
-use stundenplaner;
-
-
-create table AccessRequest(
+create table if not exists AccessRequest(
     id INT AUTO_INCREMENT PRIMARY KEY,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,

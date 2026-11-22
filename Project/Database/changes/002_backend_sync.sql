@@ -1,4 +1,4 @@
-use stundenplaner;
+
 
 alter table `User`
     add column first_name VARCHAR(100) NULL,

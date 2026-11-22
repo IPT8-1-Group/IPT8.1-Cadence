@@ -1,6 +1,4 @@
-use stundenplaner;
-
-create table ModuleLearningObjective(
+create table if not exists ModuleLearningObjective(
     id int auto_increment primary key,
     objective text not null,
     position int unsigned not null,
