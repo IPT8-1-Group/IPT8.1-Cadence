@@ -1,64 +1,110 @@
-<script lang="ts" setup>
+<script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import Draggable from 'vuedraggable'
+
 import AppNavbar from '@/components/layout/AppNavbar.vue'
 import SectionComp from '@/components/ui/SectionComp.vue'
 import Svg from '@/components/ui/Svg.vue'
 import Divider from '@/components/ui/Divider.vue'
-import { useRoute } from 'vue-router'
-import { computed, onMounted, ref } from 'vue'
-import type { ModuleDetail } from '@/types/module.ts'
-import { useGrobplanungStore } from '@/stores/grobplanungStore.ts'
-import type { Grobplanung } from '@/types/grobplanung.ts'
+
 import { useModuleStore } from '@/stores/moduleStore.ts'
-import Draggable from 'vuedraggable'
+import { useCourseStore } from '@/stores/courseStore.ts'
+import { useGrobplanungStore } from '@/stores/grobplanungStore.ts'
+import { useFeinplanungStore } from '@/stores/feinplanungStore.ts'
+import type { ModuleDetail } from '@/types/module.ts'
+import CreateCourse from '@/components/courses/CreateCourse.vue'
+
+type Topic = {
+  id: number
+  title: string
+  description: string
+}
+
+type PlanningDay = {
+  id: number
+  label: string
+  courses: Topic[]
+}
 
 const route = useRoute()
-const moduleId = computed(() => {
-  return Number(route.params.id)
-})
-
-const grobplanungStore = useGrobplanungStore()
 const moduleStore = useModuleStore()
+const courseStore = useCourseStore()
+const grobplanungStore = useGrobplanungStore()
+const feinplanungStore = useFeinplanungStore()
+
 const moduleData = ref<ModuleDetail | null>(null)
-const grobplanungData = ref<Grobplanung | null>(null)
+const days = ref<PlanningDay[]>([])
+
 onMounted(async () => {
-  moduleData.value = (await moduleStore.getModuleById(moduleId.value)) ?? null
-  grobplanungData.value = (await grobplanungStore.getGrobplanungById(moduleId.value)) ?? null
+  const moduleId = Number(route.params.id)
+
+  const [module, courses, outlines, details] = await Promise.all([
+    moduleStore.getModuleById(moduleId),
+    courseStore.getCourses(),
+    grobplanungStore.getGrobplanungen(),
+    feinplanungStore.getFeinplanungen(),
+  ])
+
+  moduleData.value = module ?? null
+  if (!courses || !outlines || !details) return
+
+  const courseIds = new Set(
+    courses.filter((course) => course.fk_module_id === moduleId).map((course) => course.id),
+  )
+
+  const topics = new Map<number, Topic>()
+
+  for (const outline of outlines) {
+    if (!courseIds.has(outline.fk_course)) continue
+
+    topics.set(outline.id, {
+      id: outline.id,
+      title: outline.title,
+      description: outline.desc ?? '',
+    })
+  }
+
+  const unassigned = new Map(topics)
+  const topicsByDay = new Map<number, Map<number, Topic>>()
+
+  for (const detail of details) {
+    if (detail.fk_outline_planning === null) continue
+
+    const topic = topics.get(detail.fk_outline_planning)
+    if (!topic) continue
+
+    const dayTopics = topicsByDay.get(detail.fk_course_day) ?? new Map<number, Topic>()
+    dayTopics.set(topic.id, topic)
+    topicsByDay.set(detail.fk_course_day, dayTopics)
+    unassigned.delete(topic.id)
+  }
+
+  days.value = [...topicsByDay.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([id, dayTopics], index) => ({
+      id,
+      label: `${index + 1}. Tag`,
+      courses: [...dayTopics.values()],
+    }))
+
+  if (unassigned.size > 0) {
+    days.value.push({
+      id: 0,
+      label: 'Nicht zugeordnet',
+      courses: [...unassigned.values()],
+    })
+  }
 })
 
-const days = ref([
-  {
-    id: 1,
-    label: '1. Tag',
-    courses: [
-      {
-        id: 101,
-        title: 'Logische Gatter',
-        description: 'AND, OR und NOT kennenlernen und ihre Ausgänge bestimmen.',
-      },
-      {
-        id: 102,
-        title: 'Wahrheitstabellen',
-        description: 'Alle Eingangskombinationen erfassen und die Ausgänge berechnen.',
-      },
-    ],
-  },
-  {
-    id: 2,
-    label: '2. Tag',
-    courses: [
-      {
-        id: 103,
-        title: 'Halbaddierer',
-        description: 'Mit XOR und AND eine Schaltung bauen, die zwei Bits addiert.',
-      },
-      {
-        id: 104,
-        title: 'Volladdierer',
-        description: 'Zwei Bits und einen eingehenden Übertrag addieren.',
-      },
-    ],
-  },
-])
+const isCreateCoursesVisible = ref<boolean>(false)
+async function sendCreateCourse() {
+  await courseStore.createCourse({
+    fk_module_id: 0,
+    title: '',
+    desc: '',
+  })
+}
 </script>
 
 <template>
@@ -94,6 +140,8 @@ const days = ref([
     </header>
 
     <div class="mx-4 my-6 sm:mx-8 sm:my-8">
+      <CreateCourse v-if="isCreateCoursesVisible"></CreateCourse>
+
       <div
         class="grid grid-cols-1 lg:grid-cols-4 w-full h-full bg-[var(--surface-color)] border border-[var(--border-color)] rounded-xl shadow-lg p-4 sm:p-5"
       >
@@ -205,7 +253,9 @@ const days = ref([
         <Divider color="var(--border-color)" class="col-span-full my-3"></Divider>
 
         <div class="col-span-full">
-          <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div
+            class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between"
+          >
             <h2>Planung</h2>
 
             <div
@@ -291,7 +341,7 @@ const days = ref([
                   <td class="px-3 py-2 text-center font-bold">{{ index + 1 }}</td>
                   <td class="py-2">
                     <div
-                      class="flex items-center justify-between gap-3 rounded-lg border border-dashed border-[var(--border-color)] px-2 py-2 sm:px-3"
+                      class="hover:border-[var(--primary-color)] transition duration-100 flex items-center justify-between gap-3 rounded-lg border border-dashed border-[var(--border-color)] px-2 py-2 sm:px-3"
                     >
                       <div class="flex min-w-0 items-center justify-center gap-2">
                         <Svg class="drag-handle shrink-0 cursor-grab" aria-hidden="true">
@@ -320,6 +370,19 @@ const days = ref([
           </table>
         </div>
       </div>
+
+      <div class="flex items-center justify-center w-full">
+        <button
+          @click="isCreateCoursesVisible = !isCreateCoursesVisible"
+          type="button"
+          class="shadow-lg lift-hover w-full max-w-[500px] mt-5 cursor-pointer flex items-center justify-center gap-2 bg-[var(--primary-color)] rounded-lg text-sm text-[var(--text-color-white)] px-3 py-2"
+        >
+          <Svg>
+            <i class="fa-solid fa-plus"></i>
+          </Svg>
+          Kurs hinzufügen
+        </button>
+      </div>
     </div>
   </SectionComp>
 </template>
@@ -331,7 +394,6 @@ th {
   text-align: left;
   border: 1px solid var(--border-color);
 }
-
 
 @media (max-width: 639px) {
   td,
