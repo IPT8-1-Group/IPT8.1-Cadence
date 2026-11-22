@@ -178,9 +178,7 @@ function removeLearningObjective(index: number) {
               moduleData?.code
             }}</span>
           </div>
-          <div
-            class="border-t sm:border-t-0 sm:border-l border-[var(--border-color)] px-5 py-2"
-          >
+          <div class="border-t sm:border-t-0 sm:border-l border-[var(--border-color)] px-5 py-2">
             <span class="block text-[var(--text-color-light)]">Titel</span>
             <span class="mt-1 block text-sm text-base text-[var(--text-color)]">{{
               moduleData?.title
@@ -212,7 +210,7 @@ function removeLearningObjective(index: number) {
           </div>
         </div>
         <div
-          class="mt-6 flex gap-5 sm:gap-8 overflow-x-auto border-b border-[var(--border-color)]"
+          class="mt-6 flex gap-5 sm:gap-8 overflow-x-auto border-b border-[var(--border-color)] overflow-hidden"
         >
           <button
             type="button"
@@ -252,7 +250,9 @@ function removeLearningObjective(index: number) {
             Statistik
           </h2>
           <div class="flex flex-row justify-between gap-3 pt-3 sm:flex-col">
-            <div class="flex flex-1 flex-col items-center gap-1 text-center sm:flex-none sm:flex-row sm:gap-5 sm:text-left">
+            <div
+              class="flex flex-1 flex-col items-center gap-1 text-center sm:flex-none sm:flex-row sm:gap-5 sm:text-left"
+            >
               <div class="hidden sm:block">
                 <Svg class="h-12 w-12 shrink-0 rounded-full bg-[#EEF1F6] text-[var(--text-color)]">
                   <i class="fa-solid fa-graduation-cap text-xl"></i>
@@ -268,7 +268,9 @@ function removeLearningObjective(index: number) {
                 </span>
               </div>
             </div>
-            <div class="flex flex-1 flex-col items-center gap-1 text-center sm:flex-none sm:flex-row sm:gap-5 sm:text-left">
+            <div
+              class="flex flex-1 flex-col items-center gap-1 text-center sm:flex-none sm:flex-row sm:gap-5 sm:text-left"
+            >
               <div class="hidden sm:block">
                 <Svg class="h-12 w-12 shrink-0 rounded-full bg-[#EEF1F6] text-[var(--text-color)]">
                   <i class="fa-regular fa-calendar text-xl"></i>
@@ -284,7 +286,9 @@ function removeLearningObjective(index: number) {
                 </span>
               </div>
             </div>
-            <div class="flex flex-1 flex-col items-center gap-1 text-center sm:flex-none sm:flex-row sm:gap-5 sm:text-left">
+            <div
+              class="flex flex-1 flex-col items-center gap-1 text-center sm:flex-none sm:flex-row sm:gap-5 sm:text-left"
+            >
               <div class="hidden sm:block">
                 <Svg class="h-12 w-12 shrink-0 rounded-full bg-[#EEF1F6] text-[var(--text-color)]">
                   <i class="fa-regular fa-file-lines text-xl"></i>
