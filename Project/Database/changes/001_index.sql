@@ -1,5 +1,3 @@
-USE stundenplaner;
-
 -- Timetable of a course within a date range:
 --   WHERE fk_course_id = ? AND `date` BETWEEN ? AND ?
 -- The leftmost column also serves queries filtering only by fk_course_id.

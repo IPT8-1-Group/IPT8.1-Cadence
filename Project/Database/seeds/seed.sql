@@ -1,5 +1,3 @@
-USE stundenplaner;
-
 -- ---------------------------------------------------------------
 -- User
 -- Platzhalter-Hash: SHA2('Test1234!', 256) ergibt 64 Hex-Zeichen (passt in CHAR(64)).
