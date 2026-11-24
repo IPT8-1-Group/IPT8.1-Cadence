@@ -11,6 +11,7 @@ import NotFoundView from '@/pages/NotFoundView.vue'
 import DetailedPlanningView from '@/pages/Courses/DetailedPlanningView.vue'
 import OutlinePlanningView from '@/pages/Courses/OutlinePlanningView.vue'
 import Settings from '@/pages/Settings/SettingsView.vue'
+import { useAuthStore } from '@/stores/authStore.ts'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -47,7 +48,7 @@ const router = createRouter({
     },
     {
       name: 'ModuleDetail',
-      path: '/moduledetail',
+      path: '/moduledetail/:id',
       component: ModuleDetailView,
       meta: { requiresAuth: true },
     },
@@ -65,13 +66,13 @@ const router = createRouter({
     },
     {
       name: 'DetailedPlanning',
-      path: '/detailedplanning',
+      path: '/detailedplanning/:id',
       component: DetailedPlanningView,
       meta: { requiresAuth: true },
     },
     {
       name: 'OutlinePlanning',
-      path: '/outlinePlanning',
+      path: '/outlinePlanning/:id',
       component: OutlinePlanningView,
       meta: { requiresAuth: true },
     },
@@ -79,7 +80,7 @@ const router = createRouter({
       name: 'Settings',
       path: '/settings',
       component: Settings,
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true },
     },
     {
       path: '/:pathMatch(.*)*',
@@ -88,6 +89,26 @@ const router = createRouter({
       meta: { requiresAuth: false },
     },
   ],
+})
+
+router.beforeEach(async (to) => {
+  const authStore = useAuthStore()
+
+  if (!authStore.isAuth) {
+    try {
+      await authStore.verify()
+    } catch (err) {
+      return '/login'
+    }
+  }
+
+  if (to.path === '/' && authStore.isAuth) {
+    return '/dashboard'
+  }
+
+  if (to.meta.requiresAuth && !authStore.isAuth) {
+    return '/login'
+  }
 })
 
 export default router

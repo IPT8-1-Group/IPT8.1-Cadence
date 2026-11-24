@@ -3,11 +3,62 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import AppNavbar from '@/components/layout/AppNavbar.vue'
 import SectionComp from '@/components/ui/SectionComp.vue'
 import Svg from '@/components/ui/Svg.vue'
+import {
+  applyThemePreference,
+  getThemePreference,
+  type ThemePreference,
+} from '@/utils/theme.ts'
+import { useAuthStore } from '@/stores/authStore.ts'
 
 // Password visibility
 const showCurrentPassword = ref(false)
 const showNewPassword = ref(false)
 const showConfirmPassword = ref(false)
+const currentPassword = ref('')
+const newPassword = ref('')
+const confirmPassword = ref('')
+const passwordMessage = ref<{ type: 'success' | 'error'; text: string } | null>(null)
+
+const authStore = useAuthStore()
+
+async function changePassword() {
+  passwordMessage.value = null
+
+  if (!currentPassword.value || !newPassword.value || !confirmPassword.value) {
+    passwordMessage.value = { type: 'error', text: 'Alle Passwortfelder müssen ausgefüllt sein.' }
+    return
+  }
+
+  if (newPassword.value.length < 8) {
+    passwordMessage.value = { type: 'error', text: 'Das neue Passwort muss mindestens 8 Zeichen lang sein.' }
+    return
+  }
+
+  if (newPassword.value !== confirmPassword.value) {
+    passwordMessage.value = { type: 'error', text: 'Die neuen Passwörter stimmen nicht überein.' }
+    return
+  }
+
+  if (newPassword.value === currentPassword.value) {
+    passwordMessage.value = { type: 'error', text: 'Das neue Passwort muss sich vom aktuellen unterscheiden.' }
+    return
+  }
+
+  const result = await authStore.changePassword(currentPassword.value, newPassword.value)
+
+  if (!result) {
+    passwordMessage.value = {
+      type: 'error',
+      text: authStore.error ?? 'Das Passwort konnte nicht geändert werden.',
+    }
+    return
+  }
+
+  passwordMessage.value = { type: 'success', text: 'Passwort erfolgreich geändert.' }
+  currentPassword.value = ''
+  newPassword.value = ''
+  confirmPassword.value = ''
+}
 
 // Active navigation section
 const activeSection = ref('account')
@@ -93,40 +144,47 @@ const palettes = {
 
 const themes = [
   {
+    id: 'light',
     label: 'Hell',
     description: 'Helle Benutzeroberfläche.',
     icon: 'fa-regular fa-sun',
-    selected: true,
     system: false,
     layers: [{ p: palettes.light, clip: undefined as string | undefined }],
   },
   {
+    id: 'dark',
     label: 'Dunkel',
     description: 'Dunkle Benutzeroberfläche.',
     icon: 'fa-regular fa-moon',
-    selected: false,
     system: false,
     layers: [{ p: palettes.dark, clip: undefined as string | undefined }],
   },
   {
+    id: 'system',
     label: 'System',
-    description: 'Passt sich automatisch an die Systemeinstellung an.',
+    description: 'Passt sich am System an.',
     icon: 'fa-solid fa-desktop',
-    selected: false,
     system: true,
     layers: [
       { p: palettes.light, clip: undefined as string | undefined },
       { p: palettes.dark, clip: 'polygon(62% 0, 100% 0, 100% 100%, 38% 100%)' },
     ],
   },
-]
+] as const
+
+const selectedTheme = ref<ThemePreference>(getThemePreference())
+
+function selectTheme(theme: ThemePreference) {
+  selectedTheme.value = theme
+  applyThemePreference(theme)
+}
 </script>
 
 <template>
   <AppNavbar></AppNavbar>
 
   <SectionComp>
-    <header class="mx-8 mb-10 mt-10 flex max-w-2xl flex-col items-start gap-3">
+    <header class="mx-4 mb-8 mt-8 flex max-w-2xl flex-col items-start gap-3 sm:mx-8 sm:mb-10 sm:mt-10">
       <span class="subtitle text-[var(--text-color-light)]">
         Konto &amp; Einstellungen
       </span>
@@ -138,14 +196,14 @@ const themes = [
       </p>
     </header>
 
-    <div class="mx-8 mb-16 grid grid-cols-1 gap-8 lg:grid-cols-[224px_1fr]">
+    <div class="mx-4 mb-12 grid grid-cols-1 gap-6 sm:mx-8 sm:mb-16 lg:grid-cols-[224px_1fr] lg:gap-8">
 
       <!-- Side navigation -->
       <nav aria-label="Einstellungen" class="lg:sticky lg:top-24 lg:self-start">
         <ul class="flex gap-1 overflow-x-auto lg:flex-col">
 
           <!-- My Account(Sidebar) -->
-          <li>
+          <li class="shrink-0">
             <a href="#account" @click.prevent="navigateTo('account')"
               class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-colors duration-200" :class="activeSection === 'account'
                 ? 'bg-[var(--secondary-color-light)] font-semibold text-[var(--secondary-color)]'
@@ -157,7 +215,7 @@ const themes = [
           </li>
 
           <!-- Security(Sidebar) -->
-          <li>
+          <li class="shrink-0">
             <a href="#security" @click.prevent="navigateTo('security')"
               class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-colors duration-200" :class="activeSection === 'security'
                 ? 'bg-[var(--secondary-color-light)] font-semibold text-[var(--secondary-color)]'
@@ -169,7 +227,7 @@ const themes = [
           </li>
 
           <!-- Appearance(Sidebar) -->
-          <li>
+          <li class="shrink-0">
             <a href="#appearance" @click.prevent="navigateTo('appearance')"
               class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-colors duration-200" :class="activeSection === 'appearance'
                 ? 'bg-[var(--secondary-color-light)] font-semibold text-[var(--secondary-color)]'
@@ -187,12 +245,12 @@ const themes = [
 
         <!-- Account -->
         <section id="account"
-          class="scroll-mt-24 overflow-hidden rounded-3xl border border-[var(--border-color)] bg-[var(--surface-color)] shadow-sm">
-          <div class="p-8">
+          class="scroll-mt-24 overflow-hidden rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] shadow-sm">
+          <div class="p-5 sm:p-8">
 
-            <header class="mb-8 flex items-start gap-4">
+            <header class="mb-6 flex items-start gap-4 sm:mb-8">
               <div
-                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--secondary-color-light)] text-[var(--secondary-color)]">
+                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--secondary-color-light)] text-[var(--secondary-color)]">
                 <i class="fa-regular fa-user"></i>
               </div>
 
@@ -255,7 +313,7 @@ const themes = [
           </div>
 
           <footer
-            class="flex items-center justify-end gap-3 border-t border-[var(--border-color)] bg-[var(--background-color)]/50 px-8 py-4">
+            class="flex items-center justify-end gap-3 border-t border-[var(--border-color)] bg-[var(--background-color)]/50 px-5 py-4 sm:px-8">
             <button type="button" disabled
               class="cursor-not-allowed rounded-xl bg-[var(--primary-color)] px-5 py-2.5 text-sm font-semibold text-[var(--text-color-white)] opacity-40">
               Änderungen speichern
@@ -265,12 +323,12 @@ const themes = [
 
         <!-- Security -->
         <section id="security"
-          class="scroll-mt-24 overflow-hidden rounded-3xl border border-[var(--border-color)] bg-[var(--surface-color)] shadow-sm">
-          <div class="p-8">
+          class="scroll-mt-24 overflow-hidden rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] shadow-sm">
+          <div class="p-5 sm:p-8">
 
-            <header class="mb-8 flex items-start gap-4">
+            <header class="mb-6 flex items-start gap-4 sm:mb-8">
               <div
-                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--secondary-color-light)] text-[var(--secondary-color)]">
+                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--secondary-color-light)] text-[var(--secondary-color)]">
                 <i class="fa-solid fa-shield-halved"></i>
               </div>
 
@@ -300,6 +358,8 @@ const themes = [
                   </Svg>
 
                   <input id="current-password" :type="showCurrentPassword ? 'text' : 'password'"
+                    v-model="currentPassword"
+                    autocomplete="current-password"
                     class="h-full min-w-0 flex-1 bg-transparent text-sm text-[var(--text-color)] outline-none" />
 
                   <button type="button" :aria-label="showCurrentPassword ? 'Passwort verbergen' : 'Passwort anzeigen'"
@@ -324,6 +384,8 @@ const themes = [
                   </Svg>
 
                   <input id="new-password" :type="showNewPassword ? 'text' : 'password'"
+                    v-model="newPassword"
+                    autocomplete="new-password"
                     class="h-full min-w-0 flex-1 bg-transparent text-sm text-[var(--text-color)] outline-none" />
 
                   <button type="button" :aria-label="showNewPassword ? 'Passwort verbergen' : 'Passwort anzeigen'"
@@ -352,6 +414,8 @@ const themes = [
                   </Svg>
 
                   <input id="confirm-password" :type="showConfirmPassword ? 'text' : 'password'"
+                    v-model="confirmPassword"
+                    autocomplete="new-password"
                     class="h-full min-w-0 flex-1 bg-transparent text-sm text-[var(--text-color)] outline-none" />
 
                   <button type="button" :aria-label="showConfirmPassword ? 'Passwort verbergen' : 'Passwort anzeigen'"
@@ -367,22 +431,30 @@ const themes = [
           </div>
 
           <footer
-            class="flex items-center justify-end gap-3 border-t border-[var(--border-color)] bg-[var(--background-color)]/50 px-8 py-4">
+            class="flex flex-wrap items-center justify-end gap-3 border-t border-[var(--border-color)] bg-[var(--background-color)]/50 px-5 py-4 sm:px-8">
+            <p v-if="passwordMessage"
+              class="mr-auto text-sm"
+              :class="passwordMessage.type === 'success' ? 'text-[var(--success-color)]' : 'text-[var(--error-color)]'"
+              role="status">
+              {{ passwordMessage.text }}
+            </p>
             <button type="button"
-              class="cursor-pointer rounded-xl bg-[var(--primary-color)] px-5 py-2.5 text-sm font-semibold text-[var(--text-color-white)] transition duration-200 hover:bg-[var(--primary-color-light)]">
-              Passwort ändern
+              :disabled="authStore.loading"
+              @click="changePassword"
+              class="cursor-pointer rounded-xl bg-[var(--primary-color)] px-5 py-2.5 text-sm font-semibold text-[var(--text-color-white)] transition duration-200 hover:bg-[var(--primary-color-light)] disabled:cursor-not-allowed disabled:opacity-50">
+              {{ authStore.loading ? 'Wird geändert...' : 'Passwort ändern' }}
             </button>
           </footer>
         </section>
 
         <!-- Appearance -->
         <section id="appearance"
-          class="scroll-mt-24 overflow-hidden rounded-3xl border border-[var(--border-color)] bg-[var(--surface-color)] shadow-sm">
-          <div class="p-8">
+          class="scroll-mt-24 overflow-hidden rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] shadow-sm">
+          <div class="p-5 sm:p-8">
 
-            <header class="mb-8 flex items-start gap-4">
+            <header class="mb-6 flex items-start gap-4 sm:mb-8">
               <div
-                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--secondary-color-light)] text-[var(--secondary-color)]">
+                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--secondary-color-light)] text-[var(--secondary-color)]">
                 <i class="fa-solid fa-palette"></i>
               </div>
 
@@ -401,8 +473,9 @@ const themes = [
 
               <!-- Theme options -->
               <button v-for="t in themes" :key="t.label" type="button"
-                class="group flex cursor-pointer flex-col gap-4 rounded-2xl border-2 bg-[var(--surface-color)] p-3 text-left transition duration-200 hover:border-[var(--secondary-color)]/60"
-                :class="t.selected
+                @click="selectTheme(t.id)"
+                class="group flex cursor-pointer flex-col gap-4 rounded-xl border-2 bg-[var(--surface-color)] p-3 text-left transition duration-200 hover:border-[var(--secondary-color)]/60"
+                :class="selectedTheme === t.id
                   ? 'border-[var(--secondary-color)] shadow-sm'
                   : 'border-[var(--border-color)]'
                   ">
@@ -455,7 +528,7 @@ const themes = [
                   </div>
 
                   <!-- Selected theme indicator -->
-                  <span v-if="t.selected"
+                  <span v-if="selectedTheme === t.id"
                     class="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--secondary-color)] text-xs text-[var(--text-color-white)]">
                     <i class="fa-solid fa-check"></i>
                   </span>
@@ -463,7 +536,7 @@ const themes = [
 
                 <!-- Theme information -->
                 <div class="flex items-start gap-3 px-1 pb-1">
-                  <Svg class="mt-0.5" :class="t.selected
+                  <Svg class="mt-0.5" :class="selectedTheme === t.id
                     ? 'text-[var(--secondary-color)]'
                     : 'text-[var(--text-color-light)]'
                     ">
@@ -483,8 +556,8 @@ const themes = [
 
             </div>
 
-            <p class="mt-6 flex items-center gap-2 text-xs text-[var(--text-color-light)]">
-              <i class="fa-regular fa-circle-check text-[var(--secondary-color)]"></i>
+            <p class="mt-6 flex items-center gap-2 text-xs text-[var(--text-color-light)]  ">
+              <i class="fa-regular fa-circle-check text-[var(--secondary-color)] "></i>
               Deine Auswahl wird automatisch gespeichert und bleibt auch nach einer erneuten Anmeldung erhalten.
             </p>
 

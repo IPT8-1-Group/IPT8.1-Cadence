@@ -1,11 +1,12 @@
 const authModel = require('../models/authModel');
+const sendError = require('../utils/apiError');
 
 async function getUsers(req, res) {
   try {
     const users = await authModel.getAllUsers();
     res.json(users);
   } catch {
-    res.status(500).json({ error: 'Fehler beim Abrufen der Benutzer' });
+    sendError(res, 500, 'USERS_LOAD_FAILED', 'Die Benutzer konnten nicht geladen werden.');
   }
 }
 
@@ -14,7 +15,7 @@ async function getUserById(req, res) {
   const user = await authModel.findUserById(id);
 
   if (!user) {
-    return res.status(404).json({ error: 'Benutzer nicht gefunden' });
+    return sendError(res, 404, 'USER_NOT_FOUND', 'Das Benutzerkonto wurde nicht gefunden.');
   }
 
   res.json(user);
@@ -27,7 +28,7 @@ async function updateUser(req, res) {
 
   const user = await authModel.findUserById(id);
   if (!user) {
-    return res.status(404).json({ error: 'Benutzer nicht gefunden' });
+    return sendError(res, 404, 'USER_NOT_FOUND', 'Das Benutzerkonto wurde nicht gefunden.');
   }
 
   // Wenn ein Konto deaktiviert wird, muessen aktive Sitzungen sofort beendet werden

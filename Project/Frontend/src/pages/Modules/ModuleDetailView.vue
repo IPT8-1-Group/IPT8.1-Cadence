@@ -2,12 +2,120 @@
 import AppNavbar from '@/components/layout/AppNavbar.vue'
 import Svg from '@/components/ui/Svg.vue'
 import SectionComp from '@/components/ui/SectionComp.vue'
+import { useModuleStore } from '@/stores/moduleStore.ts'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import type { ModuleDetail } from '@/types/module.ts'
+import { getModuleIcon } from '@/utils/moduleIcon.ts'
+import SwitchButton from '@/components/modules/SwitchButton.vue'
+import PushInNotification from '@/components/ui/PushInNotification.vue'
+import router from '@/router'
+import { notification, showNotification, undoNotification } from '@/utils/notification.ts'
+
+const moduleStore = useModuleStore()
+
+const route = useRoute()
+const moduleId = computed(() => {
+  return Number(route.params.id)
+})
+
+const moduleData = ref<ModuleDetail | null>(null)
+onMounted(async () => {
+  moduleData.value = (await moduleStore.getModuleById(moduleId.value)) ?? null
+
+  if (moduleData.value !== undefined && moduleData.value !== null) {
+    description.value = moduleData.value.description!
+    learningObj.value = moduleData.value.learningObjectives
+  }
+})
+
+const description = ref<string>('')
+const descriptionEditIsOn = ref<boolean>(false)
+const changeDescIsSuccessfull = ref<boolean | null>(null)
+async function changeDescription(editOn: boolean) {
+  changeDescIsSuccessfull.value = null
+  if (editOn) {
+    return (descriptionEditIsOn.value = !descriptionEditIsOn.value)
+  }
+
+  await moduleStore.patchModule(moduleId.value, {
+    description: description.value,
+  })
+
+  changeDescIsSuccessfull.value = moduleStore.error == null
+  return (descriptionEditIsOn.value = !descriptionEditIsOn.value)
+}
+
+const learningObj = ref<string[]>([])
+const learningObjEditIsOn = ref<boolean>(false)
+const changeLearningObjIsSuccessfull = ref<boolean | null>(null)
+async function changeLearningObj(editOn: boolean) {
+  changeLearningObjIsSuccessfull.value = null
+  if (editOn) {
+    return (learningObjEditIsOn.value = !learningObjEditIsOn.value)
+  }
+
+  await moduleStore.replaceLearningObjectives(moduleId.value, learningObj.value)
+  changeLearningObjIsSuccessfull.value = moduleStore.error == null
+  return (learningObjEditIsOn.value = !learningObjEditIsOn.value)
+}
+
+function addLearningObj() {
+  learningObj.value.push('')
+}
+
+function updateLearningObjective(index: number, event: Event) {
+  const objectives = moduleData.value?.learningObjectives
+  const input = event.currentTarget
+
+  if (objectives && input instanceof HTMLInputElement) {
+    objectives[index] = input.value
+  }
+}
+
+async function deleteModule() {
+  const errorMessage = 'Modul konnte nicht gelöscht werden.'
+
+  try {
+    await moduleStore.deleteModule(moduleId.value)
+
+    showNotification(moduleStore.error == null ? 'Modul gelöscht.' : errorMessage)
+
+    if (moduleStore.error == null) {
+      setTimeout(() => router.push('/modules'), 1000)
+    }
+  } catch {
+    showNotification(errorMessage)
+  }
+}
+
+function removeLearningObjective(index: number) {
+  const [removed] = learningObj.value.splice(index, 1)
+  if (removed === undefined) return
+
+  showNotification('Lernziel entfernt.', () => {
+    learningObj.value.splice(index, 0, removed)
+  })
+}
 </script>
 
 <template>
   <AppNavbar />
 
   <SectionComp>
+    <Transition name="notification">
+      <PushInNotification
+        v-if="notification"
+        :key="notification.id"
+        :notification="notification.message"
+        :undo-on="Boolean(notification.undo)"
+        @undo="undoNotification"
+        @close="notification = null"
+      >
+        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+      </PushInNotification>
+    </Transition>
+
     <div class="mx-4 sm:mx-6 lg:mx-8 my-6 sm:my-8 flex flex-col gap-5">
       <div
         class="rounded-t-xl border border-b-0 border-[var(--border-color)] bg-[var(--surface-color)] px-4 sm:px-6 pt-5"
@@ -15,91 +123,118 @@ import SectionComp from '@/components/ui/SectionComp.vue'
         <div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-5">
           <div class="flex items-start gap-4 sm:gap-6 min-w-0">
             <Svg
-              class="h-16 w-16 sm:h-20 sm:w-20 lg:h-[102px] lg:w-[108px] shrink-0 rounded-xl bg-[var(--secondary-color-light,#FFF2E0)] text-[var(--secondary-color,#F2A51D)]"
+              class="h-14 w-14 sm:h-20 sm:w-20 lg:h-[102px] lg:w-[108px] shrink-0 rounded-xl bg-[var(--secondary-color-light,#FFF2E0)] text-[var(--secondary-color,#F2A51D)]"
             >
-              <i class="fa-solid fa-book-open text-3xl sm:text-[40px]"></i>
+              <i
+                :class="getModuleIcon(moduleData?.title ?? '')"
+                class="text-3xl sm:text-[40px]"
+              ></i>
             </Svg>
             <div class="min-w-0">
               <span class="block text-sm sm:text-base text-[var(--text-color-light)]"> Modul </span>
-              <h1 class="text-2xl sm:text-3xl font-bold text-[var(--text-color)]">M323 – Python</h1>
+              <h1 class="text-[22px] sm:text-3xl font-bold text-[var(--text-color)] break-words">
+                {{ moduleData?.code }} – {{ moduleData?.title }}
+              </h1>
               <p class="mt-1 text-sm sm:text-base text-[var(--text-color-light)]">
-                Programmierung in Python mit Fokus auf praktische Anwendungen.
+                {{ moduleData?.description?.trim().slice(0, 120) }}
               </p>
             </div>
           </div>
 
-          <div class="flex flex-wrap items-center gap-2">
+          <div class="flex w-full flex-nowrap items-center gap-2 sm:w-auto sm:flex-wrap">
             <button
               type="button"
-              class="flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color)] shadow-sm"
+              class="lift-hover flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color)] shadow-sm min-h-11 flex-1 justify-center sm:min-h-0 sm:flex-none"
             >
               <i class="fa-solid fa-pencil"></i>
               Bearbeiten
             </button>
             <button
               type="button"
-              class="flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color)] shadow-sm"
+              aria-label="Kopieren"
+              title="Kopieren"
+              class="lift-hover flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color)] shadow-sm h-11 w-11 shrink-0 justify-center px-0 sm:h-10 sm:w-auto sm:px-3"
             >
               <i class="fa-regular fa-copy"></i>
-              Kopieren
+              <span class="hidden sm:inline">Kopieren</span>
             </button>
             <button
+              @click="deleteModule"
               type="button"
-              class="flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[#F08A8A] bg-[var(--surface-color)] px-3 text-sm text-[#E5383B] shadow-sm"
+              class="lift-hover flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[#F08A8A] bg-[var(--surface-color)] px-3 text-sm text-[#E5383B] shadow-sm min-h-11 flex-1 justify-center sm:min-h-0 sm:flex-none"
             >
               <i class="fa-regular fa-trash-can"></i>
               Löschen
             </button>
           </div>
         </div>
+        <!-- Responsiv: Trennlinien je nach Spaltenanzahl (1 / 2 / 3 / 5 Spalten) -->
         <div
-          class="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] py-3"
+          class="mt-5 hidden sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] py-3"
         >
           <div class="px-5 py-2">
             <span class="block text-[var(--text-color-light)]">Modulnummer</span>
-            <span class="mt-1 block text-sm text-base text-[var(--text-color)]">M323</span>
+            <span class="mt-1 block text-sm text-base text-[var(--text-color)]">{{
+              moduleData?.code
+            }}</span>
           </div>
-          <div class="border-l border-[var(--border-color)] px-5 py-2">
+          <div class="border-t sm:border-t-0 sm:border-l border-[var(--border-color)] px-5 py-2">
             <span class="block text-[var(--text-color-light)]">Titel</span>
-            <span class="mt-1 block text-sm text-base text-[var(--text-color)]">Python</span>
+            <span class="mt-1 block text-sm text-base text-[var(--text-color)]">{{
+              moduleData?.title
+            }}</span>
           </div>
-          <div class="border-l border-[var(--border-color)] px-5 py-2">
+          <div
+            class="border-t sm:border-t-0 sm:border-l-0 lg:border-l border-[var(--border-color)] px-5 py-2"
+          >
             <span class="block text-[var(--text-color-light)]">Beschreibung</span>
-            <span class="mt-1 block text-sm text-base text-[var(--text-color)]">
-              Programmierung in Python mit Fokus auf praktische Anwendungen.
+            <span class="mt-1 block text-sm text-[var(--text-color)]">
+              {{ moduleData?.description?.trim().slice(0, 120) }}
             </span>
           </div>
-          <div class="border-l border-[var(--border-color)] px-5 py-2">
+          <div
+            class="border-t sm:border-t-0 sm:border-l lg:border-l-0 xl:border-l border-[var(--border-color)] px-5 py-2"
+          >
             <span class="block text-[var(--text-color-light)]">Erstellt am</span>
-            <span class="mt-1 block text-sm text-base text-[var(--text-color)]">12.09.2026</span>
+            <span class="mt-1 block text-sm text-[var(--text-color)]">{{
+              moduleData?.createdAt ?? 'Nicht gesetzt'
+            }}</span>
           </div>
-          <div class="border-l border-[var(--border-color)] px-5 py-2">
+          <div
+            class="border-t sm:border-t-0 sm:border-l-0 lg:border-l border-[var(--border-color)] px-5 py-2"
+          >
             <span class="block text-[var(--text-color-light)]">Zuletzt bearbeitet</span>
-            <span class="mt-1 block text-sm text-base text-[var(--text-color)]">18.09.2026</span>
+            <span class="mt-1 block text-sm text-[var(--text-color)]">{{
+              moduleData?.updatedAt ?? 'Nicht gesetzt'
+            }}</span>
           </div>
         </div>
-        <div class="mt-6 flex gap-5 sm:gap-8 overflow-x-auto border-b border-[var(--border-color)]">
+        <div
+          class="mt-6 flex gap-5 sm:gap-8 overflow-x-auto border-b border-[var(--border-color)] overflow-hidden"
+        >
           <button
             type="button"
-            class="-mb-px shrink-0 cursor-pointer border-b-[3px] border-[var(--secondary-color,#F2A51D)] px-3 pb-3 text-base font-semibold text-[var(--text-color)]"
+            class="-mb-px shrink-0 cursor-pointer border-b-[3px] border-[var(--secondary-color)] px-3 pb-3 text-base font-semibold text-[var(--text-color)]"
           >
             Übersicht
           </button>
-          <button
+          <RouterLink
+            :to="`/outlinePlanning/${moduleId}`"
             type="button"
-            class="shrink-0 cursor-pointer px-3 pb-3 text-base text-[var(--text-color-light)]"
+            class="-mb-px shrink-0 cursor-pointer border-b-[3px] border-transparent hover:border-[var(--secondary-color-light)] px-3 pb-3 text-base text-[var(--text-color-light)] hover:text-[var(--text-color)]"
           >
             Grobplanung
-          </button>
-          <button
+          </RouterLink>
+          <RouterLink
+            :to="`/detailedplanning/${moduleId}`"
             type="button"
-            class="shrink-0 cursor-pointer px-3 pb-3 text-base text-[var(--text-color-light)]"
+            class="-mb-px shrink-0 cursor-pointer border-b-[3px] border-transparent hover:border-[var(--secondary-color-light)] px-3 pb-3 text-base text-[var(--text-color-light)] hover:text-[var(--text-color)]"
           >
             Feinplanung
-          </button>
+          </RouterLink>
           <button
             type="button"
-            class="shrink-0 cursor-pointer px-3 pb-3 text-base text-[var(--text-color-light)]"
+            class="-mb-px shrink-0 cursor-pointer border-b-[3px] border-transparent hover:border-[var(--secondary-color-light)] px-3 pb-3 text-base text-[var(--text-color-light)] hover:text-[var(--text-color)]"
           >
             Materialien
           </button>
@@ -114,59 +249,106 @@ import SectionComp from '@/components/ui/SectionComp.vue'
           >
             Statistik
           </h2>
-          <div class="flex flex-col gap-3 pt-3">
-            <div class="flex items-center gap-5">
-              <Svg class="h-12 w-12 shrink-0 rounded-full bg-[#EEF1F6] text-[var(--text-color)]">
-                <i class="fa-solid fa-graduation-cap text-xl"></i>
-              </Svg>
-              <div>
-                <span class="block text-lg font-bold text-[var(--text-color)]">3</span>
-                <span class="block text-sm text-[var(--text-color-light)]">Kurse</span>
+          <div class="flex flex-row justify-between gap-3 pt-3 sm:flex-col">
+            <div
+              class="flex flex-1 flex-col items-center gap-1 text-center sm:flex-none sm:flex-row sm:gap-5 sm:text-left"
+            >
+              <div class="hidden sm:block">
+                <Svg class="h-12 w-12 shrink-0 rounded-full bg-[#EEF1F6] text-[var(--text-color)]">
+                  <i class="fa-solid fa-graduation-cap text-xl"></i>
+                </Svg>
               </div>
-            </div>
-            <div class="flex items-center gap-5">
-              <Svg class="h-12 w-12 shrink-0 rounded-full bg-[#EEF1F6] text-[var(--text-color)]">
-                <i class="fa-regular fa-calendar text-xl"></i>
-              </Svg>
               <div>
-                <span class="block text-lg font-bold text-[var(--text-color)]">12</span>
-                <span class="block text-sm text-[var(--text-color-light)]">
-                  Planungstage (gesamt)
+                <span class="block text-[22px] font-bold text-[var(--text-color)] sm:text-lg">{{
+                  moduleData?.statistics.courseCount
+                }}</span>
+                <span class="block text-xs text-[var(--text-color-light)] sm:text-sm">
+                  <span class="sm:hidden">Kurse</span>
+                  <span class="hidden sm:inline">Kurse</span>
                 </span>
               </div>
             </div>
-            <div class="flex items-center gap-5">
-              <Svg class="h-12 w-12 shrink-0 rounded-full bg-[#EEF1F6] text-[var(--text-color)]">
-                <i class="fa-regular fa-file-lines text-xl"></i>
-              </Svg>
+            <div
+              class="flex flex-1 flex-col items-center gap-1 text-center sm:flex-none sm:flex-row sm:gap-5 sm:text-left"
+            >
+              <div class="hidden sm:block">
+                <Svg class="h-12 w-12 shrink-0 rounded-full bg-[#EEF1F6] text-[var(--text-color)]">
+                  <i class="fa-regular fa-calendar text-xl"></i>
+                </Svg>
+              </div>
               <div>
-                <span class="block text-lg font-bold text-[var(--text-color)]">48</span>
-                <span class="block text-sm text-[var(--text-color-light)]">
-                  Unterrichtssequenzen (gesamt)
+                <span class="block text-[22px] font-bold text-[var(--text-color)] sm:text-lg">{{
+                  moduleData?.statistics.dayCount
+                }}</span>
+                <span class="block text-xs text-[var(--text-color-light)] sm:text-sm">
+                  <span class="sm:hidden">Planungstage</span>
+                  <span class="hidden sm:inline">Planungstage (gesamt)</span>
+                </span>
+              </div>
+            </div>
+            <div
+              class="flex flex-1 flex-col items-center gap-1 text-center sm:flex-none sm:flex-row sm:gap-5 sm:text-left"
+            >
+              <div class="hidden sm:block">
+                <Svg class="h-12 w-12 shrink-0 rounded-full bg-[#EEF1F6] text-[var(--text-color)]">
+                  <i class="fa-regular fa-file-lines text-xl"></i>
+                </Svg>
+              </div>
+              <div>
+                <span class="block text-[22px] font-bold text-[var(--text-color)] sm:text-lg">{{
+                  moduleData?.statistics.detailedEntryCount
+                }}</span>
+                <span class="block text-xs text-[var(--text-color-light)] sm:text-sm">
+                  <span class="sm:hidden">Sequenzen</span>
+                  <span class="hidden sm:inline">Unterrichtssequenzen (gesamt)</span>
                 </span>
               </div>
             </div>
           </div>
         </section>
-        <section class="rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] px-5 pb-5" >
+        <section
+          class="flex flex-col min-h-0 rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] px-5 pb-5"
+        >
           <div
-            class="flex min-h-14 items-center justify-between gap-3 border-b border-[var(--border-color)]">
+            class="flex flex-wrap min-h-14 items-center justify-between gap-3 border-b border-[var(--border-color)]"
+          >
             <h2 class="text-lg font-bold text-[var(--text-color)]">Modulbeschreibung</h2>
-            <button
-              type="button"
-              class="flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color)]"
-            >
-              <i class="fa-solid fa-pencil"></i>
-              Bearbeiten
-            </button>
+
+            <div class="flex gap-2 items-center justify-center">
+              <div v-if="changeDescIsSuccessfull != null" class="text-xs">
+                <span
+                  v-if="changeDescIsSuccessfull"
+                  class="text-[var(--success-color)] flex items-center justify-center"
+                >
+                  <Svg>
+                    <i class="fa-regular fa-thumbs-up"></i>
+                  </Svg>
+                  Gespeichert
+                </span>
+
+                <span v-else class="text-[var(--error-color)] flex items-center justify-center">
+                  <Svg>
+                    <i class="fa-solid fa-x"></i>
+                  </Svg>
+                  Fehlgeschlagen
+                </span>
+              </div>
+              <SwitchButton :is-on="descriptionEditIsOn" @switch="changeDescription"></SwitchButton>
+            </div>
           </div>
-          <p class="pt-5 text-sm sm:text-base leading-6 text-[var(--text-color-light)]">
-            In diesem Modul lernen die Teilnehmenden die Programmiersprache Python von Grund auf
-            kennen. Der Fokus liegt auf praktischen Anwendungen, einer verständlichen Einführung in
-            die Syntax sowie der Entwicklung eigener kleiner Projekte. Das Modul bildet die
-            Grundlage für weiterführende Themen wie Datenanalyse, Automatisierung und
-            Webentwicklung.
-          </p>
+          <div
+            class="pt-5 text-sm sm:text-base leading-6 text-[var(--text-color-light)] flex min-h-0 flex-1 flex-col"
+          >
+            <textarea
+              v-model="description"
+              placeholder="Gebe ein über was dieses Modul geht..."
+              :readonly="!descriptionEditIsOn"
+              :disabled="!descriptionEditIsOn"
+              aria-label="Modulbeschreibung"
+              maxlength="500"
+              class="w-full h-full min-h-32 outline-0 text-wrap flex-1 resize-none"
+            />
+          </div>
         </section>
       </div>
 
@@ -174,41 +356,88 @@ import SectionComp from '@/components/ui/SectionComp.vue'
         class="rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] px-5 pb-5"
       >
         <div
-          class="flex min-h-14 items-center justify-between gap-3 border-b border-[var(--border-color)]"
+          class="flex flex-wrap min-h-14 items-center justify-between gap-3 border-b border-[var(--border-color)]"
         >
           <h2 class="text-lg font-bold text-[var(--text-color)]">Lernziele</h2>
 
-          <button
-            type="button"
-            class="flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color)]"
-          >
-            <i class="fa-solid fa-pencil"></i>
-            Bearbeiten
-          </button>
+          <div class="flex flex-wrap items-center justify-center gap-2">
+            <button
+              v-if="learningObjEditIsOn"
+              @click.stop="addLearningObj"
+              type="button"
+              class="lift-hover flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border-color)] bg-[var(--surface-color)] px-3 text-sm text-[var(--text-color)]"
+            >
+              <i class="fa-solid fa-plus"></i>
+              Hinzufügen
+            </button>
+            <div v-if="changeLearningObjIsSuccessfull != null" class="text-xs">
+              <span
+                v-if="changeLearningObjIsSuccessfull"
+                class="text-[var(--success-color)] flex items-center justify-center"
+              >
+                <Svg>
+                  <i class="fa-regular fa-thumbs-up"></i>
+                </Svg>
+                Gespeichert
+              </span>
+
+              <span v-else class="text-[var(--error-color)] flex items-center justify-center">
+                <Svg>
+                  <i class="fa-solid fa-x"></i>
+                </Svg>
+                Fehlgeschlagen
+              </span>
+            </div>
+            <SwitchButton :is-on="learningObjEditIsOn" @switch="changeLearningObj"></SwitchButton>
+          </div>
         </div>
         <ul class="space-y-3 pt-4 text-sm sm:text-base leading-6 text-[var(--text-color-light)]">
-          <li class="flex items-start gap-4">
-            <span
-              class="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-[var(--secondary-color,#F2A51D)]"></span> Die Teilnehmenden kennen die grundlegende Syntax von Python.
+          <li
+            v-for="(learningObject, i) in moduleData?.learningObjectives"
+            :key="i"
+            class="flex items-start gap-4"
+          >
+            <div class="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-[var(--secondary-color)]"></div>
+            <input
+              @input="updateLearningObjective(i, $event)"
+              :value="learningObject"
+              maxlength="250"
+              :disabled="!learningObjEditIsOn"
+              :readonly="!learningObjEditIsOn"
+              alt="lernziel"
+              class="w-full min-w-0 max-w-[500px] disabled:border-transparent disabled:px-0 sm:disabled:border-[var(--primary-color)] sm:disabled:px-2 focus:outline-1 outline-[var(--primary-color)] border border-[var(--primary-color)] rounded-lg px-2 py-1"
+            />
+            <Svg
+              v-if="learningObjEditIsOn"
+              @click="removeLearningObjective(i)"
+              class="lift-hover w-[35px] h-[35px] shrink-0 rounded-lg bg-[var(--error-color-light)] text-[var(--error-color)] cursor-pointer"
+            >
+              <i class="fa-solid fa-trash-can"></i>
+            </Svg>
           </li>
-          <li class="flex items-start gap-4">
-            <span class="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-[var(--secondary-color,#F2A51D)]"></span>
-            Die Teilnehmenden können einfache Programme selbstständig entwickeln.
-          </li>
-          <li class="flex items-start gap-4">
-            <span
-              class="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-[var(--secondary-color,#F2A51D)]"
-            ></span>
-            Die Teilnehmenden wenden Python in praktischen Beispielen an.
-          </li>
-          <li class="flex items-start gap-4">
-            <span
-              class="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-[var(--secondary-color,#F2A51D)]"
-            ></span>
-            Die Teilnehmenden verstehen die Grundkonzepte der objektorientierten Programmierung.
+
+          <li v-if="moduleData && moduleData.learningObjectives.length === 0">
+            <div class="flex items-start gap-4">
+              <div class="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-[var(--secondary-color)]"></div>
+              Keine Lernziele festgelegt
+            </div>
           </li>
         </ul>
       </section>
     </div>
   </SectionComp>
 </template>
+
+<style scoped>
+.notification-leave-active {
+  transition:
+    opacity 250ms ease-out,
+    transform 250ms ease-out;
+  pointer-events: none;
+}
+
+.notification-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+</style>

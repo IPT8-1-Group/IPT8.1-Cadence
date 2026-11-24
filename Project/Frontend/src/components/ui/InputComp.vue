@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import Svg from '@/components/ui/Svg.vue'
 
+const model = defineModel<string>({ default: '' })
+
 const props = defineProps<{
   type: string
   required: boolean
@@ -17,6 +19,7 @@ const props = defineProps<{
       <slot></slot>
     </Svg>
     <input
+      v-model="model"
       :required="props.required"
       :aria-label="props.label"
       :type="props.type"

@@ -3,34 +3,16 @@
 
 --USE stundenplaner;
 
-CREATE TABLE `User`(
+CREATE TABLE IF NOT EXISTS `User`(
     id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(50) NOT NULL UNIQUE,
     password_hash CHAR(64) NOT NULL,
     `role` VARCHAR(20) NOT NULL,
-    first_name VARCHAR(50) NOT NULL DEFAULT '',
-    last_name VARCHAR(50) NOT NULL DEFAULT '',
-    institution VARCHAR(100) NOT NULL DEFAULT '',
-    job_title VARCHAR(50) NOT NULL DEFAULT '',
-    reset_token VARCHAR(64) NULL,
-    reset_token_expires DATETIME NULL,
     active BOOL NOT NULL DEFAULT TRUE,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE AccessRequest(
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    first_name VARCHAR(50) NOT NULL,
-    last_name VARCHAR(50) NOT NULL,
-    email VARCHAR(50) NOT NULL,
-    institution VARCHAR(100) NOT NULL,
-    job_title VARCHAR(50) NOT NULL DEFAULT '',
-    additional_info TEXT,
-    status VARCHAR(20) NOT NULL DEFAULT 'pending',
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE `Token`(
+CREATE TABLE IF NOT EXISTS `Token`(
     id INT AUTO_INCREMENT PRIMARY KEY,
     public_key TEXT NOT NULL,
     `update` BOOL NOT NULL DEFAULT FALSE,
@@ -43,7 +25,7 @@ CREATE TABLE `Token`(
             ON DELETE CASCADE
 );
 
-CREATE TABLE Module
+CREATE TABLE IF NOT EXISTS Module
 (
     id INT AUTO_INCREMENT PRIMARY KEY,
     `desc` VARCHAR(255),
@@ -51,7 +33,7 @@ CREATE TABLE Module
     code VARCHAR(20) NOT NULL UNIQUE
 );
 
-CREATE TABLE Course(
+CREATE TABLE IF NOT EXISTS Course(
     id INT AUTO_INCREMENT PRIMARY KEY,
     `desc` VARCHAR(255),
     title VARCHAR(100) NOT NULL,
@@ -62,7 +44,7 @@ CREATE TABLE Course(
             ON DELETE CASCADE
 );
 
-CREATE TABLE Course_day(
+CREATE TABLE IF NOT EXISTS Course_day(
     id INT AUTO_INCREMENT PRIMARY KEY,
     date INT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     start_time TIME NOT NULL,
@@ -74,7 +56,7 @@ CREATE TABLE Course_day(
             ON DELETE CASCADE
 );
 
-CREATE TABLE OutlinePlanning(
+CREATE TABLE IF NOT EXISTS OutlinePlanning(
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
     `desc` VARCHAR(255),
@@ -85,12 +67,11 @@ CREATE TABLE OutlinePlanning(
             ON DELETE CASCADE
 );
 
-CREATE TABLE DetailedPlanning(
+CREATE TABLE IF NOT EXISTS DetailedPlanning(
     id INT AUTO_INCREMENT PRIMARY KEY,
     topic VARCHAR(100) NOT NULL,
     `desc` VARCHAR(255),
     dur_min INT NOT NULL DEFAULT 45,
-    position INT NOT NULL DEFAULT 0,
     fk_course_day INT NOT NULL,
     fk_outline_planning INT,
 

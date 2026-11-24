@@ -1,27 +1,30 @@
 const authModel = require('../models/authModel');
 const authService = require('../services/authService');
 const { isValidEmail } = require('../utils/validators');
+const sendError = require('../utils/apiError');
 
 async function submitRequest(req, res) {
-  const { firstName, lastName, email, institution, additionalInformation } = req.body;
-  const jobTitle = (req.body.jobTitle || req.body.job_title || req.body.funktion || req.body.function || '').trim();
+  const body = req.body || {};
+  const { firstName, lastName, email,institution, additionalInformation } = body;
+  const jobTitleValue = body.jobTitle || body.job_title|| body.funktion|| body.function||'';
+  const jobTitle = typeof jobTitleValue === 'string' ? jobTitleValue.trim() : '';
 
-  if (!firstName || !lastName || !email || !institution || !jobTitle) {
-    return res.status(400).json({ error: 'Vorname, Nachname, E-Mail, Institution und Funktion/Berufsbezeichnung sind erforderlich' });
+  if ([firstName, lastName, email, institution, jobTitle].some((value) => typeof value !== 'string' || !value.trim())) {
+    return sendError(res, 400, 'REQUIRED_FIELDS_MISSING', 'Bitte fülen Sie Vorname, Nachname, E-Mail, institution und Funktion/Berufsbezeichnung aus.');
   }
 
   if (!isValidEmail(email)) {
-    return res.status(400).json({ error: 'Gültige E-Mail-Adresse erforderlich' });
+    return sendError(res, 400, 'INVALID_EMAIL', 'Bitte geben Sie eine gültige E-Mail-Adresse ein.');
   }
 
   const existingUser = await authModel.findUserByEmail(email);
   if (existingUser) {
-    return res.status(400).json({ error: 'Für diese E-Mail existiert bereits ein Benutzerkonto' });
+    return sendError(res, 409, 'EMAIL_ALREADY_REGISTERED', 'Für diese E-Mail-Adresse besteht bereits ein Benutzerkonto.');
   }
 
   const existingRequest = await authModel.findPendingAccessRequestByEmail(email);
   if (existingRequest) {
-    return res.status(400).json({ error: 'Für diese E-Mail existiert bereits eine offene Anfrage' });
+    return sendError(res, 409, 'REQUEST_ALREADY_PENDING', 'Für diese E-Mail-Adresse liegt bereits eine offene Zugangsanfrage vor.');
   }
 
   try {
@@ -31,12 +34,12 @@ async function submitRequest(req, res) {
       email: email.trim(),
       institution: institution.trim(),
       jobTitle,
-      additionalInfo: additionalInformation ? additionalInformation.trim() : '',
+      additionalInfo: typeof additionalInformation === 'string' ? additionalInformation.trim() : '',
     });
 
     res.status(201).json({ message: 'Zugangsanfrage erfolgreich eingereicht', id });
   } catch {
-    res.status(500).json({ error: 'Fehler beim Speichern der Zugangsanfrage' });
+    sendError(res, 500, 'ACCESS_REQUEST_CREATE_FAILED', 'Die Zugangsanfrage konnte nicht gespeichert werden. Bitte versuchen Sie es später erneut.');
   }
 }
 
@@ -45,7 +48,7 @@ async function listRequests(req, res) {
     const requests = await authModel.getAllAccessRequests();
     res.json(requests);
   } catch {
-    res.status(500).json({ error: 'Fehler beim Abrufen der Zugangsanfragen' });
+    sendError(res, 500, 'ACCESS_REQUESTS_LOAD_FAILED', 'Die Zugangsanfragen konnten nicht geladen werden. Bitte versuchen Sie es später erneut.');
   }
 }
 
@@ -54,18 +57,18 @@ async function approveRequest(req, res) {
   const request = await authModel.getAccessRequestById(id);
 
   if (!request) {
-    return res.status(404).json({ error: 'Anfrage nicht gefunden' });
+    return sendError(res, 404, 'ACCESS_REQUEST_NOT_FOUND', 'Die Zugangsanfrage wurde nicht gefunden.');
   }
 
   if (request.status !== 'pending') {
-    return res.status(400).json({ error: 'Anfrage wurde bereits bearbeitet' });
+    return sendError(res, 409, 'ACCESS_REQUEST_ALREADY_PROCESSED', 'Die Zugangsanfrage wurde bereits bearbeitet.');
   }
 
   // Pruefen ob der Benutzer schon existiert
   let user = await authModel.findUserByEmail(request.email);
   if (user) {
     await authModel.updateAccessRequestStatus(id, 'approved');
-    return res.status(400).json({ error: 'Benutzerkonto existiert bereits' });
+    return sendError(res, 409, 'EMAIL_ALREADY_REGISTERED', 'Für diese E-Mail-Adresse besteht bereits ein Benutzerkonto.');
   }
 
   // Benutzer anlegen mit temporaerem Passwort (muss ueber Link gesetzt werden)
@@ -96,11 +99,11 @@ async function rejectRequest(req, res) {
   const request = await authModel.getAccessRequestById(id);
 
   if (!request) {
-    return res.status(404).json({ error: 'Anfrage nicht gefunden' });
+    return sendError(res, 404, 'ACCESS_REQUEST_NOT_FOUND', 'Die Zugangsanfrage wurde nicht gefunden.');
   }
 
   if (request.status !== 'pending') {
-    return res.status(400).json({ error: 'Anfrage wurde bereits bearbeitet' });
+    return sendError(res, 409, 'ACCESS_REQUEST_ALREADY_PROCESSED', 'Die Zugangsanfrage wurde bereits bearbeitet.');
   }
 
   await authModel.updateAccessRequestStatus(id, 'rejected');

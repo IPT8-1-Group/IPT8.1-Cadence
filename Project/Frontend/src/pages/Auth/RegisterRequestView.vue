@@ -4,6 +4,61 @@ import Logo from '@/components/ui/Logo.vue'
 import Svg from '@/components/ui/Svg.vue'
 import InputComp from '@/components/ui/InputComp.vue'
 import DividerVertical from '@/components/ui/DividerVertical.vue'
+import { ref } from 'vue'
+import type { UserRole } from '@/types/auth.ts'
+import { useAccessRequestStore } from '@/stores/accessRequestStore.ts'
+
+const accessRequestStore = useAccessRequestStore()
+
+const firstName = ref<string>('')
+const lastName = ref<string>('')
+const email = ref<string>('')
+const institution = ref<string>('')
+const jobTitle = ref<UserRole | ''>('')
+const additionalInformation = ref<string>('')
+
+const error = ref<string | null>(null)
+const success = ref<string>('')
+async function sendRegisterRequest() {
+  error.value = ''
+  success.value = ''
+
+  if (!firstName.value || firstName.value.length == 0) {
+    return (error.value = 'Vorname ist leer.')
+  }
+
+  if (!lastName.value || lastName.value.length == 0) {
+    return (error.value = 'Nachname ist leer.')
+  }
+
+  if (!email.value || email.value.length == 0) {
+    return (error.value = 'Email ist leer.')
+  }
+
+  if (!institution.value || institution.value.length == 0) {
+    return (error.value = 'Institution ist leer.')
+  }
+
+  if (!jobTitle.value) {
+    return (error.value = 'Funktion ist leer.')
+  }
+
+  try {
+    const result = await accessRequestStore.submitAccessRequest({
+      firstName: firstName.value.trim(),
+      lastName: lastName.value.trim(),
+      email: email.value.trim(),
+      institution: institution.value.trim(),
+      jobTitle: jobTitle.value.trim(),
+      additionalInformation: additionalInformation.value.trim(),
+    })
+
+    if (result) success.value = result.message
+    error.value = accessRequestStore.error
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Anmeldung fehlgeschlagen'
+  }
+}
 </script>
 
 <template>
@@ -16,20 +71,21 @@ import DividerVertical from '@/components/ui/DividerVertical.vue'
     </RouterLink>
   </header>
 
-  <SectionComp class="h-screen flex items-center justify-center">
+  <SectionComp class="min-h-screen px-4 py-28 sm:px-6 lg:py-8 flex items-center justify-center">
     <img
-      src="../../assets/images/bg-auth.png"
+      src="../../assets/images/bg-auth.svg"
       alt="background image register page"
-      class="fixed inset-x-0 bottom-0 -z-1"
+      class="fixed inset-x-0 bottom-0 -z-1 max-w-full"
     />
 
     <div
-      class="max-w-[800px] w-full bg-[var(--surface-color)] shadow-xl rounded-xl px-8 py-7 flex flex-row-reverse gap-4"
+      class="max-w-[800px] w-full bg-[var(--surface-color)] shadow-xl rounded-xl px-5 py-6 sm:px-8 sm:py-7 flex flex-col-reverse md:flex-row-reverse gap-4"
     >
       <div
-        class="min-w-[320px] min-h-full border border-transparent border-l-[var(--border-color)] px-4 py-3 flex items-center justify-center gap-6"
+        class="md:min-w-[320px] md:min-h-full border border-transparent border-t-[var(--border-color)] md:border-t-transparent md:border-l-[var(--border-color)] px-0 pt-6 md:px-4 md:py-3 flex items-center justify-start md:justify-center gap-6"
       >
-        <div class="flex flex-col gap-1 items-center justify-start h-fit w-fit -mt-23">
+        <!-- Nummern-Leiste: erst ab md sichtbar, weil sie an die Höhe der Schritte rechts gebunden ist -->
+        <div class="hidden md:flex flex-col gap-1 items-center justify-start h-fit w-fit -mt-23">
           <Svg
             class="text-sm w-fit min-w-[25px] min-h-[25px] bg-[var(--secondary-color)] text-[var(--text-color-white)] rounded-full"
           >
@@ -125,7 +181,7 @@ import DividerVertical from '@/components/ui/DividerVertical.vue'
           </div>
         </div>
       </div>
-      <div>
+      <div class="min-w-0">
         <h1 class="mt-4 text-[var(--text-color)]">Zugang anfragen</h1>
 
         <p class="text-[var(--text-color-light)] text-sm my-4">
@@ -133,9 +189,10 @@ import DividerVertical from '@/components/ui/DividerVertical.vue'
           erhälst eine E-Mail mit deinen Zugangsdaten.
         </p>
 
-        <form class="flex flex-col w-full gap-3" @submit.prevent="">
-          <div class="w-full flex items-center justify-between gap-2">
+        <form class="flex flex-col w-full gap-3" @submit.prevent="sendRegisterRequest">
+          <div class="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-2">
             <InputComp
+              v-model="firstName"
               :required="true"
               type="text"
               placeholder="Vorname"
@@ -146,6 +203,7 @@ import DividerVertical from '@/components/ui/DividerVertical.vue'
             </InputComp>
 
             <InputComp
+              v-model="lastName"
               :required="true"
               type="text"
               placeholder="Nachname"
@@ -157,6 +215,7 @@ import DividerVertical from '@/components/ui/DividerVertical.vue'
           </div>
 
           <InputComp
+            v-model="email"
             :required="true"
             type="email"
             placeholder="E-Mail-Adresse"
@@ -166,6 +225,7 @@ import DividerVertical from '@/components/ui/DividerVertical.vue'
           </InputComp>
 
           <InputComp
+            v-model="institution"
             :required="true"
             type="text"
             placeholder="Schule / Institution"
@@ -182,15 +242,16 @@ import DividerVertical from '@/components/ui/DividerVertical.vue'
             </Svg>
 
             <select
+              v-model="jobTitle"
               required
-              name="function"
-              id="function"
+              name="jobTitle"
+              id="jobTitle"
               class="w-full outline-none text-sm cursor-pointer"
             >
-              <option value="">Funktion</option>
-              <option value="teacher">Lehrperson</option>
+              <option disabled value="">Funktion auswählen</option>
+              <option value="user">Lehrperson</option>
               <option value="admin">Schuladministration</option>
-              <option value="other">Sonstiges</option>
+              <!--              <option value="other">Sonstiges</option>-->
             </select>
           </div>
 
@@ -202,6 +263,7 @@ import DividerVertical from '@/components/ui/DividerVertical.vue'
             </Svg>
 
             <textarea
+              v-model="additionalInformation"
               placeholder="Zusätzliche Informationen
 (optional)"
               class="w-full outline-none text-sm min-h-[110px]"
@@ -217,6 +279,14 @@ import DividerVertical from '@/components/ui/DividerVertical.vue'
               <i class="fa-solid fa-angle-right"></i>
             </Svg>
           </button>
+
+          <p v-if="error" class="text-[var(--error-color)] text-xs my-2">
+            {{ error?.trim() }}
+          </p>
+
+          <p v-if="success" class="text-[var(--success-color)] text-xs my-2">
+            {{ success?.trim() }}
+          </p>
         </form>
       </div>
     </div>

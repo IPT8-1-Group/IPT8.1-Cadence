@@ -12,9 +12,14 @@ services:
             MARIADB_PASSWORD: ${DB_PASSWORD}
             MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
         volumes:
-            - db_data:/var/lib/mysql
-            - ./Database/create.sql:/docker-entrypoint-initdb.d/01-create.sql:ro
-            - ./Database/seeds/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+        - db_data:/var/lib/mysql
+        - ./Database/create.sql:/docker-entrypoint-initdb.d/01-create.sql:ro
+        - ./Database/changes:/migrations:ro
+        - ./Database/seeds/seed.sql:/docker-entrypoint-initdb.d/03-seed.sql:ro
+
+        configs:
+        - source: run_migrations
+          target: /docker-entrypoint-initdb.d/02-migrations.sh
         healthcheck:
             test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
             interval: 10s
@@ -65,3 +70,8 @@ services:
     
 volumes:
     db_data:
+
+configs:
+  run_migrations:
+    content: |
+      docker_process_init_files /migrations/[0-9][0-9][0-9]_*.sql
