@@ -2,6 +2,9 @@ export type Feinplanung = {
   id: number
   topic: string
   desc: string | null
+  method: string | null
+  medium: string | null
+  comment: string | null
   dur_min: number
   position: number
   fk_course_day: number
@@ -11,7 +14,7 @@ export type Feinplanung = {
 export type FeinplanungDayResponse = {
   day: {
     id: number
-    date: number | string
+    date: number | string | null
     startTime: string
     endTime: string
     availableDurationMin: number
@@ -32,6 +35,9 @@ export type FeinplanungDayResponse = {
 export type CreateFeinplanungRequest = {
   topic: string
   desc?: string | null
+  method?: string | null
+  medium?: string | null
+  comment?: string | null
   dur_min?: number
   fk_course_day: number
   fk_outline_planning?: number | null
