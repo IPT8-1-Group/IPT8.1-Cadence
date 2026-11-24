@@ -1,11 +1,13 @@
+const sendError = require('../utils/apiError');
+
 function validationError(res, message, fields) {
-  return res.status(400).json({
-    error: {
-      code: "VALIDATION_ERROR",
-      message: "Die Eingaben sind ungültig.",
-      details: { fields: fields || { request: message } },
-    },
-  });
+  return sendError(
+    res,
+    400,
+    'VALIDATION_ERROR',
+    'Die Eingaben sind ungültig.',
+    { fields: fields || { request: message } },
+  );
 }
 
 function isObject(value) {

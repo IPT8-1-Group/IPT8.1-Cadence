@@ -33,10 +33,14 @@ async function getModuleById(id, connection = pool) {
     [id],
   );
   if (!modules[0]) return undefined;
+  const [goals] = await connection.query(
+    "SELECT objective FROM ModuleLearningObjective WHERE fk_module = ? ORDER BY position, id",
+    [id],
+  );
   return {
     ...modules[0],
     externalUrl: null,
-    learningObjectives: [],
+    learningObjectives: goals.map(goal => goal.objective),
     createdAt: null,
     updatedAt: null,
   };
