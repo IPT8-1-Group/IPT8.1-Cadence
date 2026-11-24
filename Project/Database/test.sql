@@ -1,4 +1,4 @@
-USE stundenplaner;
+--USE stundenplaner;
 
 DROP TEMPORARY TABLE IF EXISTS test_results;
 -- ENGINE=MEMORY, damit das ROLLBACK weiter unten die Ergebnisse nicht löscht.
