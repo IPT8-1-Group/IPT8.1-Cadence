@@ -10,6 +10,49 @@ async function getOutlines(req, res) {
   }
 }
 
+async function getPlacements(req, res) {
+  const courseId = Number(req.params.courseId);
+  if (!Number.isSafeInteger(courseId) || courseId <= 0) {
+    return sendError(res, 400, 'INVALID_COURSE_ID', 'Die Kurs-ID ist ungültig.');
+  }
+  try {
+    res.json(await grobplanungModel.getPlacements(courseId));
+  } catch {
+    sendError(res, 500, 'PLACEMENTS_LOAD_FAILED', 'Die Themenzuordnung konnte nicht geladen werden.');
+  }
+}
+
+async function placeOutline(req, res) {
+  const courseId = Number(req.params.courseId);
+  const { outlineId, fromDayId, targetDayId, orderedIds = [] } = req.body ?? {};
+  const validId = id => Number.isSafeInteger(id) && id > 0;
+  if (!validId(courseId) || !validId(outlineId) ||
+      (fromDayId !== null && !validId(fromDayId)) ||
+      (targetDayId !== null && !validId(targetDayId)) ||
+      !Array.isArray(orderedIds) || !orderedIds.every(validId) ||
+      new Set(orderedIds).size !== orderedIds.length) {
+    return sendError(res, 400, 'INVALID_PLACEMENT', 'Prüfe Thema, Kurstage und Reihenfolge.');
+  }
+  try {
+    const result = await grobplanungModel.placeOutline(courseId, {
+      outlineId, fromDayId, targetDayId, orderedIds,
+    });
+    if (result === 'not_found') {
+      return sendError(res, 404, 'PLACEMENT_NOT_FOUND', 'Kurs, Thema oder Kurstag wurde nicht gefunden.');
+    }
+    if (result === 'changed') {
+      return sendError(res, 409, 'PLACEMENT_CHANGED', 'Die Zuordnung wurde verändert. Bitte lade die Planung neu.');
+    }
+    if (result === 'linked') {
+      return sendError(res, 409, 'PLACEMENT_LINKED', 'Das Thema ist mit einer Feinplanung verknüpft und kann nicht vom Kurstag entfernt werden.');
+    }
+    if (result !== 'saved') throw new Error('Unexpected placement result');
+    res.json({ status: 'saved' });
+  } catch {
+    sendError(res, 500, 'PLACEMENT_SAVE_FAILED', 'Die Themenzuordnung konnte nicht gespeichert werden.');
+  }
+}
+
 async function getOutline(req, res) {
   try {
     const item = await grobplanungModel.getOutlineById(req.params.id);

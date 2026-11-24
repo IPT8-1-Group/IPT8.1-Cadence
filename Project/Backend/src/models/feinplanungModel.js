@@ -156,12 +156,6 @@ async function reorderFeinplanung(dayId, orderedIds) {
 }
 
 module.exports = {
-  getDayInfo,
-  getAllFeinplanungen,
-  getFeinplanungById,
-  createFeinplanung,
-  updateFeinplanung,
-  deleteFeinplanung,
-  moveFeinplanung,
-  reorderFeinplanung,
+  getDayInfo, getAllFeinplanungen, getFeinplanungById, createFeinplanung,
+  updateFeinplanung, deleteFeinplanung, moveFeinplanung, reorderFeinplanung,
 };

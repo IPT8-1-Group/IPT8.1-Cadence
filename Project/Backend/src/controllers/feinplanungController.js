@@ -27,62 +27,66 @@ async function getFeinplanung(req, res) {
   }
 }
 
+// Only named lesson fields are passed to the model. Omitted fields on PUT
+// keep their previous values, including the optional outline association.
+function validId(value) {
+  return (typeof value === 'number' || typeof value === 'string') &&
+    Number.isSafeInteger(Number(value)) && Number(value) > 0;
+}
+
+function readFields(body) {
+  const fields = {};
+  const limits = { topic: 100, desc: 255, method: 100, medium: 100, comment: 255 };
+  for (const [key, limit] of Object.entries(limits)) {
+    if (body[key] === undefined) continue;
+    if (body[key] === null && key !== 'topic') fields[key] = null;
+    else if (typeof body[key] === 'string' && body[key].length <= limit) fields[key] = body[key].trim();
+    else return null;
+  }
+  if (fields.topic === '') return null;
+  const minutes = body.dur_min ?? body.duration;
+  if (minutes !== undefined) {
+    fields.dur_min = Number(minutes);
+    if (!Number.isSafeInteger(fields.dur_min) || fields.dur_min < 1 || fields.dur_min > 2147483647) return null;
+  }
+  if (body.fk_course_day !== undefined || body.dayId !== undefined) {
+    fields.fk_course_day = Number(body.fk_course_day ?? body.dayId);
+    if (!Number.isSafeInteger(fields.fk_course_day) || fields.fk_course_day < 1) return null;
+  }
+  const outline = body.fk_outline_planning !== undefined ? body.fk_outline_planning : body.outlineId;
+  if (outline !== undefined) {
+    if (outline !== null && !validId(outline)) return null;
+    fields.fk_outline_planning = outline === null ? null : Number(outline);
+  }
+  return fields;
+}
+
+function sendPlan(res, result, status = 200) {
+  if (!result) return sendError(res, 404, 'LESSON_NOT_FOUND', 'Der Eintrag wurde nicht gefunden.');
+  if (result.error === 'DAY_NOT_FOUND') return sendError(res, 404, 'COURSE_DAY_NOT_FOUND', 'Der Kurstag wurde nicht gefunden.');
+  if (result.error === 'PLAN_CHANGED') return sendError(res, 409, 'PLAN_CHANGED', 'Die Planung hat sich geändert. Bitte laden Sie den aktuellen Stand.');
+  return res.status(status).json(result);
+}
+
 async function createFeinplanung(req, res) {
-  const { topic, desc, dur_min, duration, fk_course_day, dayId, fk_outline_planning, outlineId } = req.body;
-  const targetDay = fk_course_day || dayId;
-  const targetOutline = fk_outline_planning !== undefined ? fk_outline_planning : outlineId;
-  const minutes = Number(dur_min || duration || 45);
-
-  if (!topic || !targetDay) {
-    return sendError(res, 400, 'REQUIRED_FIELDS_MISSING', 'Thema und Kurstag sind erforderlich.');
+  const fields = readFields(req.body ?? {});
+  if (!fields?.topic || !fields.fk_course_day) {
+    return sendError(res, 400, 'INVALID_ENTRY', 'Bitte prüfen Sie Inhalt, Kurstag, Dauer und Textlängen.');
   }
-  if (isNaN(minutes) || minutes <= 0) {
-    return sendError(res, 400, 'INVALID_DURATION', 'Die Dauer muss eine positive Zahl in Minuten sein.');
-  }
-
   try {
-    const created = await feinplanungModel.createFeinplanung(
-      topic,
-      desc || null,
-      minutes,
-      targetDay,
-      targetOutline || null
-    );
-    if (created.error === 'DAY_NOT_FOUND') {
-      return sendError(res, 404, 'COURSE_DAY_NOT_FOUND', 'Der Kurstag wurde nicht gefunden.');
-    }
-    const newEntry = await feinplanungModel.getFeinplanungById(created.id);
-    res.status(201).json(newEntry);
+    sendPlan(res, await feinplanungModel.createFeinplanung(fields), 201);
   } catch {
-    sendError(res, 500, 'LESSON_CREATE_FAILED', 'Der Feinplanungseintrag konnte nicht erstellt werden. Bitte versuchen Sie es später erneut.');
+    sendError(res, 500, 'LESSON_CREATE_FAILED', 'Der Eintrag konnte nicht erstellt werden.');
   }
 }
 
 async function updateFeinplanung(req, res) {
-  const { topic, desc, dur_min, duration, fk_course_day, dayId, fk_outline_planning, outlineId } = req.body;
+  const fields = readFields(req.body ?? {});
+  if (!fields) return sendError(res, 400, 'INVALID_ENTRY', 'Bitte prüfen Sie Inhalt, Dauer und Textlängen.');
   try {
-    const current = await feinplanungModel.getFeinplanungById(req.params.id);
-    if (!current) {
-      return sendError(res, 404, 'LESSON_NOT_FOUND', 'Der Feinplanungseintrag wurde nicht gefunden.');
-    }
-
-    const minutes = dur_min !== undefined || duration !== undefined ? Number(dur_min || duration) : current.dur_min;
-    if (isNaN(minutes) || minutes <= 0) {
-      return sendError(res, 400, 'INVALID_DURATION', 'Die Dauer muss eine positive Zahl in Minuten sein.');
-    }
-
-    const updated = await feinplanungModel.updateFeinplanung(
-      req.params.id,
-      topic !== undefined ? topic : current.topic,
-      desc !== undefined ? desc : current.desc,
-      minutes,
-      (fk_course_day || dayId) || current.fk_course_day,
-      fk_outline_planning !== undefined ? fk_outline_planning : (outlineId !== undefined ? outlineId : current.fk_outline_planning)
-    );
-
-    res.json(updated);
+    sendPlan(res, await feinplanungModel.updateFeinplanung(req.params.id, fields));
   } catch {
-    sendError(res, 500, 'LESSON_UPDATE_FAILED', 'Der Feinplanungseintrag konnte nicht aktualisiert werden. Bitte versuchen Sie es später erneut.');
+    sendError(res, 500, 'LESSON_UPDATE_FAILED', 'Der Eintrag konnte nicht aktualisiert werden.');
   }
 }
 
@@ -100,19 +104,13 @@ async function moveFeinplanung(req, res) {
   const newDayId = targetDayId || fk_course_day || dayId;
   const newOutlineId = targetOutlineId !== undefined ? targetOutlineId : (fk_outline_planning !== undefined ? fk_outline_planning : outlineId);
 
-  if (!newDayId) {
+  if (!validId(newDayId) || (newOutlineId != null && !validId(newOutlineId))) {
     return sendError(res, 400, 'TARGET_DAY_REQUIRED', 'Bitte wählen Sie einen Zielkurstag aus.');
   }
 
   try {
     const moved = await feinplanungModel.moveFeinplanung(req.params.id, newDayId, newOutlineId);
-    if (!moved) {
-      return sendError(res, 404, 'LESSON_NOT_FOUND', 'Der Feinplanungseintrag wurde nicht gefunden.');
-    }
-    if (moved.error === 'DAY_NOT_FOUND') {
-      return sendError(res, 404, 'TARGET_DAY_NOT_FOUND', 'Der ausgewählte Zielkurstag wurde nicht gefunden.');
-    }
-    res.json(moved);
+    sendPlan(res, moved);
   } catch {
     sendError(res, 500, 'LESSON_MOVE_FAILED', 'Der Feinplanungseintrag konnte nicht verschoben werden. Bitte versuchen Sie es später erneut.');
   }
@@ -122,16 +120,13 @@ async function reorderFeinplanung(req, res) {
   const { dayId, fk_course_day, orderedIds } = req.body;
   const targetDay = dayId || fk_course_day;
 
-  if (!targetDay || !Array.isArray(orderedIds)) {
+  if (!validId(targetDay) || !Array.isArray(orderedIds) || !orderedIds.every(Number.isSafeInteger)) {
     return sendError(res, 400, 'REORDER_FIELDS_REQUIRED', 'Bitte geben Sie einen Kurstag und eine Liste der Einträge an.');
   }
 
   try {
     const result = await feinplanungModel.reorderFeinplanung(targetDay, orderedIds);
-    if (result && result.error === 'DAY_NOT_FOUND') {
-      return sendError(res, 404, 'COURSE_DAY_NOT_FOUND', 'Der Kurstag wurde nicht gefunden.');
-    }
-    res.json(result);
+    sendPlan(res, result);
   } catch {
     sendError(res, 500, 'LESSON_REORDER_FAILED', 'Die Feinplanung konnte nicht umsortiert werden. Bitte versuchen Sie es später erneut.');
   }
