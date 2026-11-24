@@ -4,6 +4,7 @@ const sendError = require('../utils/apiError');
 async function getFeinplanungen(req, res) {
   try {
     const dayId = req.query.dayId || req.query.fk_course_day;
+    if (dayId !== undefined && !validId(dayId)) return sendError(res, 400, 'INVALID_DAY', 'Ungültiger Kurstag.');
     const result = await feinplanungModel.getAllFeinplanungen(dayId);
     if (dayId && !result) {
       return sendError(res, 404, 'COURSE_DAY_NOT_FOUND', 'Der Kurstag wurde nicht gefunden.');
