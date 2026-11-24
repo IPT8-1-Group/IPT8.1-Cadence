@@ -7,6 +7,7 @@ router.get('/', kursController.getCourses);
 router.get('/:id', kursController.getCourse);
 router.post('/', kursController.createCourse);
 router.put('/:id', kursController.updateCourse);
+router.put('/:id/assessment', kursController.updateAssessment);
 router.delete('/:id', kursController.deleteCourse);
 
 // Kurstage
