@@ -1,7 +1,7 @@
 const pool = require('../confing/database');
 
 async function getAllCourses() {
-  const [rows] = await pool.query('SELECT id, title, `desc`, fk_module_id FROM Course');
+  const [rows] = await pool.query('SELECT id, title, `desc`, fk_module_id, assessment FROM Course');
   return rows;
 }
 
@@ -24,6 +24,11 @@ async function createCourse(title, desc, fk_module_id) {
 async function updateCourse(id, title, desc) {
   await pool.query('UPDATE Course SET title = ?, `desc` = ? WHERE id = ?', [title, desc, id]);
   return getCourseById(id);
+}
+
+async function updateAssessment(id, assessment) {
+  const [result] = await pool.query('UPDATE Course SET assessment = ? WHERE id = ?', [assessment, id]);
+  return result.affectedRows ? { assessment } : null;
 }
 
 async function deleteCourse(id) {
