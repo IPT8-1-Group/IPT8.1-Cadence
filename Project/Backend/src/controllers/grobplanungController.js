@@ -23,25 +23,30 @@ async function getOutline(req, res) {
 }
 
 async function createOutline(req, res) {
-  const { title, desc, fk_course, courseId } = req.body;
-  const cId = fk_course || courseId;
+  const { title, desc, fk_course, courseId, dayId = null } = req.body ?? {};
+  const cId = Number(fk_course || courseId);
 
   if (!title || !cId) {
     return sendError(res, 400, 'REQUIRED_FIELDS_MISSING', 'Titel und Kurs sind erforderlich.');
   }
 
   try {
-    const id = await grobplanungModel.createOutline(title, desc || null, cId);
-    res.status(201).json({ id, title, desc: desc || null, fk_course: cId });
+    const id = await grobplanungModel.createOutline(title.trim(), desc || null, cId, dayId);
+    if (!id) return sendError(res, 404, 'COURSE_OR_DAY_NOT_FOUND', 'Kurs oder Kurstag nicht gefunden.');
+    res.status(201).json({ id, title: title.trim(), desc: desc || null, fk_course: cId });
   } catch {
     sendError(res, 500, 'OUTLINE_CREATE_FAILED', 'Der Grobplanungseintrag konnte nicht erstellt werden. Bitte versuchen Sie es später erneut.');
   }
 }
 
 async function updateOutline(req, res) {
-  const { title, desc } = req.body;
+  const { title, desc } = req.body ?? {};
+  if (typeof title !== 'string' || !title.trim() || title.trim().length > 100 ||
+      (desc != null && (typeof desc !== 'string' || desc.length > 255))) {
+    return sendError(res, 400, 'INVALID_OUTLINE', 'Prüfe Titel und Beschreibung.');
+  }
   try {
-    const updated = await grobplanungModel.updateOutline(req.params.id, title, desc);
+    const updated = await grobplanungModel.updateOutline(req.params.id, title.trim(), desc ?? null);
     if (!updated) {
       return sendError(res, 404, 'OUTLINE_NOT_FOUND', 'Der Grobplanungseintrag wurde nicht gefunden.');
     }
@@ -81,6 +86,8 @@ async function moveOutline(req, res) {
 
 module.exports = {
   getOutlines,
+  getPlacements,
+  placeOutline,
   getOutline,
   createOutline,
   updateOutline,
