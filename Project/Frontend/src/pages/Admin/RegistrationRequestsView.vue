@@ -118,12 +118,12 @@ function formatDate(val: string) {
 const statusMap: Record<string, { label: string; class: string }> = {
   pending: {
     label: 'Offen',
-    class:
-      'bg-[var(--warning-color-light,var(--color-amber-100))] text-[var(--warning-color,var(--color-amber-600))]',
+    class: 'bg-[var(--primary-color-light)] text-[var(--primary-color)]',
   },
   approved: {
     label: 'Genehmigt',
-    class: 'bg-[var(--primary-color-light)] text-[var(--success-color)]',
+    class:
+      'bg-[color-mix(in_srgb,var(--success-color)_15%,transparent)] text-[var(--success-color)]',
   },
   rejected: {
     label: 'Abgelehnt',
@@ -170,7 +170,7 @@ async function handleReject() {
       <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div class="flex items-center gap-4 min-w-0">
           <div
-            class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center shrink-0 bg-[var(--warning-color-light,var(--color-amber-100))] text-[var(--warning-color,var(--color-amber-600))]"
+            class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center shrink-0 bg-[var(--primary-color-light)] text-[var(--primary-color)]"
           >
             <i class="fa-solid fa-inbox text-xl sm:text-2xl"></i>
           </div>
