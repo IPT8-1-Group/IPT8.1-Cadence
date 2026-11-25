@@ -4,6 +4,7 @@ import AppNavbar from '@/components/layout/AppNavbar.vue'
 import SectionComp from '@/components/ui/SectionComp.vue'
 import { useAdminStore } from '@/stores/adminStore.ts'
 import type { AccessRequest } from '@/types/accessRequest.ts'
+import AuthNavbar from '@/components/layout/AuthNavbar.vue'
 
 const adminStore = useAdminStore()
 
@@ -162,7 +163,7 @@ async function handleReject() {
 </script>
 
 <template>
-  <AppNavbar></AppNavbar>
+  <AuthNavbar></AuthNavbar>
 
   <SectionComp>
     <div class="px-4 py-8 sm:px-8">
