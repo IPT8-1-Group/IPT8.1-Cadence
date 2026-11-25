@@ -138,7 +138,7 @@ async function onCreateModule(value: CreateModuleRequestALearningObj) {
         @create="onCreateModule"
         class="mt-5"
       >
-        <p v-if="createModuleError" class="text-[var(--error-color)] text-xs my-2">
+        <p v-if="createModuleError"  class="text-[var(--error-color)] text-xs my-2">
           {{ createModuleError?.trim() }}
         </p>
       </CreateModule>
@@ -151,38 +151,38 @@ async function onCreateModule(value: CreateModuleRequestALearningObj) {
       >
         <div class="flex items-center gap-3 min-w-0 flex-1">
           <Svg
-            class="w-[60px] h-[60px] shrink-0 rounded-lg bg-[var(--secondary-color-light)] text-[var(--secondary-color)]"
+            class="w-[60px] h-[60px] shrink-0 rounded-lg bg-[var(--secondary-color-light)] text-[var(--secondary-color)] "
           >
-            <i :class="getModuleIcon(module.title)" class="text-[40px]"></i>
+            <i :class="getModuleIcon(module.title)" class="sm:text-[40px] text-[35px]"></i>
           </Svg>
           <div class="min-w-0">
-            <h3 class="font-semibold text-[var(--text-color)]">
+            <h3 class="font-semibold text-sm sm:text-m text-[var(--text-color)]">
               {{ module.code }} - {{ module.title.trim().slice(0, 120) }}
             </h3>
-            <p class="mt-1 text-sm text-[var(--text-color-light)]">
+            <p class="mt-1 text-xs sm:text-sm text-[var(--text-color-light)]">
               {{ module.description?.trim().slice(0, 120) }}
             </p>
           </div>
         </div>
 
         <div
-          class="flex flex-wrap lg:flex-nowrap items-center gap-x-4 gap-y-3 lg:gap-6 xl:gap-8 shrink-0"
+          class="sm:flex flex-wrap lg:flex-nowrap items-center gap-x-4 gap-y-3 lg:gap-6 xl:gap-8 shrink-0 hidden sm:not-[hidden]:"
         >
           <div class="border-l border-[var(--border-color)] pl-5">
-            <span class="text-sm text-[var(--text-color-light)]">Kurse</span>
-            <p class="mt-1 text-sm text-[var(--text-color)]">
+            <span class="sm:text-sm text-xs text-[var(--text-color-light)]">Kurse</span>
+            <p class="mt-1 sm:text-sm text-xs text-[var(--text-color)]">
               {{ module.courseCount ?? 'Nicht gesetzt' }}
             </p>
           </div>
-          <div class="border-l border-[var(--border-color)] pl-5">
-            <span class="text-sm text-[var(--text-color-light)]">Erstellt am</span>
-            <p class="mt-1 text-sm text-[var(--text-color)]">
+          <div class="border-l  border-[var(--border-color)] pl-5">
+            <span class="sm:text-sm text-xs text-[var(--text-color-light)]">Erstellt am</span>
+            <p class="mt-1 sm:text-sm text-xs text-[var(--text-color)]">
               {{ module.createdAt ?? 'Nicht gesetzt' }}
             </p>
           </div>
           <div class="border-l border-[var(--border-color)] pl-5">
-            <span class="text-sm text-[var(--text-color-light)]">Zuletzt bearbeitet</span>
-            <p class="mt-1 text-sm text-[var(--text-color)]">
+            <span class="sm:text-sm text-xs text-[var(--text-color-light)]">Zuletzt bearbeitet</span>
+            <p class="mt-1 sm:text-sm text-xs text-[var(--text-color)]">
               {{ module.updatedAt ?? 'Nicht gesetzt' }}
             </p>
           </div>
