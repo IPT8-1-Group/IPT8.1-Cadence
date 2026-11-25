@@ -10,7 +10,7 @@ import {
 } from '@/utils/theme.ts'
 import { useAuthStore } from '@/stores/authStore.ts'
 
-// Password visibility
+
 const showCurrentPassword = ref(false)
 const showNewPassword = ref(false)
 const showConfirmPassword = ref(false)
@@ -92,7 +92,7 @@ const updateActiveSection = () => {
   activeSection.value = 'account'
 }
 
-// Navigate to section
+
 const navigateTo = (section: SectionId) => {
   activeSection.value = section
 
@@ -118,7 +118,7 @@ onUnmounted(() => {
 
 const GOLD = '#E4A51F'
 
-// Theme previews are intentionally hardcoded (independent of the active theme)
+
 const palettes = {
   light: {
     page: '#F1F1F4',
@@ -226,7 +226,7 @@ function selectTheme(theme: ThemePreference) {
             </a>
           </li>
 
-          <!-- Appearance(Sidebar) -->
+         
           <li class="shrink-0">
             <a href="#appearance" @click.prevent="navigateTo('appearance')"
               class="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm transition-colors duration-200" :class="activeSection === 'appearance'
@@ -279,12 +279,12 @@ function selectTheme(theme: ThemePreference) {
                     <i class="fa-regular fa-envelope"></i>
                   </Svg>
 
-                  <input id="email" type="email" value="lehrperson@schule.ch"
-                    class="h-full min-w-0 flex-1 bg-transparent text-sm text-[var(--text-color)] outline-none disabled:cursor-not-allowed disabled:text-[var(--text-color-light)]" />
+                  <input id="email" type="email" :value="authStore.email ?? ''" readonly
+                    class="h-full min-w-0 flex-1 cursor-not-allowed bg-transparent text-sm text-[var(--text-color-light)] outline-none" />
                 </div>
               </div>
 
-              <!-- Role -->
+              
               <div class="flex flex-col gap-2">
                 <label for="role" class="text-xs font-semibold text-[var(--text-color)]">
                   Benutzerrolle
@@ -371,7 +371,7 @@ function selectTheme(theme: ThemePreference) {
                 </div>
               </div>
 
-              <!-- New password -->
+             
               <div class="flex flex-col gap-2">
                 <label for="new-password" class="text-xs font-semibold text-[var(--text-color)]">
                   Neues Passwort
@@ -447,7 +447,6 @@ function selectTheme(theme: ThemePreference) {
           </footer>
         </section>
 
-        <!-- Appearance -->
         <section id="appearance"
           class="scroll-mt-24 overflow-hidden rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] shadow-sm">
           <div class="p-5 sm:p-8">
@@ -471,7 +470,7 @@ function selectTheme(theme: ThemePreference) {
 
             <div class="grid grid-cols-1 items-start gap-4 md:grid-cols-3">
 
-              <!-- Theme options -->
+          
               <button v-for="t in themes" :key="t.label" type="button"
                 @click="selectTheme(t.id)"
                 class="group flex cursor-pointer flex-col gap-4 rounded-xl border-2 bg-[var(--surface-color)] p-3 text-left transition duration-200 hover:border-[var(--secondary-color)]/60"
@@ -519,7 +518,6 @@ function selectTheme(theme: ThemePreference) {
                       </div>
                     </div>
 
-                    <!-- System theme divider -->
                     <svg v-if="t.system" class="pointer-events-none absolute inset-0 h-full w-full"
                       viewBox="0 0 100 100" preserveAspectRatio="none">
                       <line x1="62" y1="0" x2="38" y2="100" :stroke="GOLD" stroke-width="1.5"
@@ -527,14 +525,13 @@ function selectTheme(theme: ThemePreference) {
                     </svg>
                   </div>
 
-                  <!-- Selected theme indicator -->
                   <span v-if="selectedTheme === t.id"
                     class="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--secondary-color)] text-xs text-[var(--text-color-white)]">
                     <i class="fa-solid fa-check"></i>
                   </span>
                 </div>
 
-                <!-- Theme information -->
+       
                 <div class="flex items-start gap-3 px-1 pb-1">
                   <Svg class="mt-0.5" :class="selectedTheme === t.id
                     ? 'text-[var(--secondary-color)]'
