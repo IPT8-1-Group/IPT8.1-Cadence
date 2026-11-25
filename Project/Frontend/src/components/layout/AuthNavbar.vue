@@ -7,7 +7,7 @@ import Svg from '@/components/ui/Svg.vue'
   <NavbarLayout>
     <RouterLink
       to="/registrationrequest"
-      class="hover:border-b-[var(--border-color)] transition duration-200 text-[var(--text-color-light)] cursor-pointer px-4 py-3 md:px-3 md:py-2 flex items-center justify-center h-full gap-2 text-base md:text-sm font-semibold border border-transparent border-b-[3px]"
+      class="hover:border-b-[var(--border-color)] transition duration-200 text-[var(--text-color-light)] cursor-pointer px-4 py-2 md:px-3 md:py-2 flex items-center justify-center h-full gap-2 text-base md:text-sm font-semibold border border-transparent border-b-[3px]"
     >
       <Svg class="svg">
         <i class="fa-solid fa-bell"></i>
@@ -17,7 +17,7 @@ import Svg from '@/components/ui/Svg.vue'
 
     <RouterLink
       to="/users"
-      class="hover:border-b-[var(--border-color)] transition duration-200 text-[var(--text-color-light)] cursor-pointer px-4 py-3 md:px-3 md:py-2 flex items-center justify-center h-full gap-2 text-base md:text-sm font-semibold border border-transparent border-b-[3px]"
+      class="hover:border-b-[var(--border-color)] transition duration-200 text-[var(--text-color-light)] cursor-pointer px-4 py-2 md:px-3 md:py-2 flex items-center justify-center h-full gap-2 text-base md:text-sm font-semibold border border-transparent border-b-[3px]"
     >
       <Svg class="svg">
         <i class="fa-solid fa-screwdriver-wrench"></i>

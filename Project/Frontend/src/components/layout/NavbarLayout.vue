@@ -31,7 +31,7 @@ async function sendLogout() {
       <Logo class="w-[120px] min-w-[100px]"></Logo>
     </RouterLink>
     <div
-      class="fixed inset-x-0 bottom-0 z-999 order-3 md:static md:order-none col-span-2 md:col-span-5 flex items-center justify-center gap-2 border-t border-[var(--border-color)] bg-[var(--surface-color)] px-3 pt-3 pb-0 md:border-0 md:bg-transparent md:px-0 md:py-0 md:gap-1 md:justify-start"
+      class="fixed inset-x-0 bottom-0 z-999 order-3 md:static md:order-none col-span-2 md:col-span-5 flex items-center justify-center gap-2 border-t border-[var(--border-color)] bg-[var(--surface-color)] px-3 pt-1 pb-0 md:border-0 md:bg-transparent md:px-0 md:py-0 md:gap-1 md:justify-start"
     >
       <slot></slot>
     </div>
