@@ -1,80 +1,24 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import AppNavbar from '@/components/layout/AppNavbar.vue'
+import AuthNavbar from '@/components/layout/AuthNavbar.vue'
 import SectionComp from '@/components/ui/SectionComp.vue'
 import { useAdminStore } from '@/stores/adminStore.ts'
-import type { AccessRequest } from '@/types/accessRequest.ts'
-import AuthNavbar from '@/components/layout/AuthNavbar.vue'
 
 const adminStore = useAdminStore()
 
 const search = ref('')
 const activeTab = ref<'pending' | 'approved' | 'rejected'>('pending')
-const selectedId = ref<number | null>(1)
-const loading = ref(false)
+const selectedId = ref<number | null>(null)
+const submitting = ref(false)
 
-const mockRequests: AccessRequest[] = [
-  {
-    id: 1,
-    firstName: 'Lea',
-    lastName: 'Meier',
-    institution: 'Kantonsschule Alpenblick',
-    jobTitle: 'Lehrperson',
-    funktion: 'Lehrperson',
-    email: 'lea.meier@example.ch',
-    createdAt: '11.11.2026',
-    status: 'pending',
-    additionalInformation: 'Ich möchte Cadence für meine Unterrichtsplanung nutzen.',
-  },
-  {
-    id: 2,
-    firstName: 'Jonas',
-    lastName: 'Frei',
-    institution: 'Berufsfachschule Sonnenberg',
-    jobTitle: 'Lehrperson',
-    funktion: 'Lehrperson',
-    email: 'jonas.frei@example.ch',
-    createdAt: '10.11.2026',
-    status: 'pending',
-    additionalInformation: null,
-  },
-  {
-    id: 3,
-    firstName: 'Nina',
-    lastName: 'Keller',
-    institution: 'Gymnasium Seeblick',
-    jobTitle: 'Lehrperson',
-    funktion: 'Lehrperson',
-    email: 'nina.keller@example.ch',
-    createdAt: '09.11.2026',
-    status: 'pending',
-    additionalInformation: null,
-  },
-]
-
-const requests = ref<AccessRequest[]>([...mockRequests])
+const requests = computed(() => adminStore.accessRequests ?? [])
 
 onMounted(async () => {
-  try {
-    await adminStore.getAccessRequests()
-    if (adminStore.accessRequests?.length) {
-      requests.value = [...adminStore.accessRequests]
-    }
-  } catch {}
-
+  await adminStore.getAccessRequests()
   if (filteredRequests.value.length) {
     selectedId.value = filteredRequests.value[0]?.id ?? null
   }
 })
-
-watch(
-  () => adminStore.accessRequests,
-  (val) => {
-    if (val?.length) {
-      requests.value = [...val]
-    }
-  },
-)
 
 const pendingCount = computed(() => requests.value.filter((r) => r.status === 'pending').length)
 
@@ -102,11 +46,11 @@ watch(filteredRequests, (list) => {
 })
 
 function getInitials(first = '', last = '') {
-  return `${first[0] ?? ''}${last[0] ?? ''}`.toUpperCase()
+  return `${first[0] ?? ''}${last[0] ?? ''}`.toUpperCase() || '?'
 }
 
 function formatDate(val: string) {
-  if (!val) return ''
+  if (!val) return '-'
   if (/^\d{2}\.\d{2}\.\d{4}$/.test(val)) return val
   const d = new Date(val)
   if (isNaN(d.getTime())) return val
@@ -133,30 +77,20 @@ const statusMap: Record<string, { label: string; class: string }> = {
 
 async function handleApprove() {
   if (!selected.value) return
-  const id = selected.value.id
-  loading.value = true
-  try {
-    await adminStore.approveAccessRequest(id)
-  } catch {}
-  const item = requests.value.find((r) => r.id === id)
-  if (item) item.status = 'approved'
-  loading.value = false
-  if (filteredRequests.value[0]) {
+  submitting.value = true
+  const res = await adminStore.approveAccessRequest(selected.value.id)
+  submitting.value = false
+  if (res && filteredRequests.value[0]) {
     selectedId.value = filteredRequests.value[0].id
   }
 }
 
 async function handleReject() {
   if (!selected.value) return
-  const id = selected.value.id
-  loading.value = true
-  try {
-    await adminStore.rejectAccessRequest(id)
-  } catch {}
-  const item = requests.value.find((r) => r.id === id)
-  if (item) item.status = 'rejected'
-  loading.value = false
-  if (filteredRequests.value[0]) {
+  submitting.value = true
+  const res = await adminStore.rejectAccessRequest(selected.value.id)
+  submitting.value = false
+  if (res && filteredRequests.value[0]) {
     selectedId.value = filteredRequests.value[0].id
   }
 }
@@ -191,6 +125,14 @@ async function handleReject() {
           />
         </label>
       </header>
+
+      <div
+        v-if="adminStore.error"
+        class="mb-6 flex items-center gap-2.5 rounded-xl border border-[var(--error-color)] bg-[var(--error-color-light)] px-4 py-3 text-sm text-[var(--error-color)]"
+      >
+        <i class="fa-solid fa-circle-exclamation shrink-0"></i>
+        <span>{{ adminStore.error }}</span>
+      </div>
 
       <div class="border-b border-[var(--border-color)] flex items-center gap-6 sm:gap-8">
         <button
@@ -233,7 +175,15 @@ async function handleReject() {
         </button>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6 items-start">
+      <div
+        v-if="adminStore.loading && !adminStore.accessRequests"
+        class="mt-6 flex items-center justify-center gap-3 rounded-2xl border border-[var(--border-color)] bg-[var(--surface-color)] p-10 text-sm text-[var(--text-color-light)]"
+      >
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <span>Anfragen werden geladen ...</span>
+      </div>
+
+      <div v-else class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6 items-start">
         <div class="lg:col-span-6 flex flex-col gap-3">
           <div
             v-for="req in filteredRequests"
@@ -336,7 +286,7 @@ async function handleReject() {
                   Funktion
                 </span>
                 <span class="text-xs sm:text-sm font-medium text-[var(--text-color)]">
-                  {{ selected.jobTitle || selected.funktion }}
+                  {{ selected.jobTitle || selected.funktion || '-' }}
                 </span>
               </div>
 
@@ -364,10 +314,7 @@ async function handleReject() {
                   </span>
                 </div>
                 <p class="text-xs sm:text-sm font-medium text-[var(--text-color)] pl-8">
-                  {{
-                    selected.additionalInformation ||
-                    'Ich möchte Cadence für meine Unterrichtsplanung nutzen.'
-                  }}
+                  {{ selected.additionalInformation || 'Keine Angaben' }}
                 </p>
               </div>
             </div>
@@ -379,7 +326,7 @@ async function handleReject() {
               <button
                 type="button"
                 @click="handleReject"
-                :disabled="loading"
+                :disabled="submitting"
                 class="flex-1 py-2.5 px-4 rounded-xl border border-[var(--error-color)] bg-[var(--surface-color)] text-[var(--error-color)] text-sm font-medium hover:bg-[var(--error-color-light)] disabled:opacity-50 transition duration-200 cursor-pointer text-center"
               >
                 Ablehnen
@@ -387,7 +334,7 @@ async function handleReject() {
               <button
                 type="button"
                 @click="handleApprove"
-                :disabled="loading"
+                :disabled="submitting"
                 class="flex-1 py-2.5 px-4 rounded-xl bg-[var(--primary-color)] text-[var(--text-color-white)] text-sm font-medium hover:opacity-90 disabled:opacity-50 transition duration-200 cursor-pointer text-center shadow-sm"
               >
                 Genehmigen

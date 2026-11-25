@@ -3,16 +3,19 @@ import { computed, onMounted, ref, watch } from 'vue'
 import AuthNavbar from '@/components/layout/AuthNavbar.vue'
 import SectionComp from '@/components/ui/SectionComp.vue'
 import { useAdminStore } from '@/stores/adminStore.ts'
+import { useAuthStore } from '@/stores/authStore.ts'
 import type { User, UserRole } from '@/types/auth.ts'
 
 const adminStore = useAdminStore()
+const authStore = useAuthStore()
 
 const search = ref('')
 const activeTab = ref<'all' | 'active' | 'inactive'>('all')
-const selectedId = ref<number | null>(1)
-const loading = ref(false)
+const selectedId = ref<number | null>(null)
+const submitting = ref(false)
 const isEditing = ref(false)
 const showCreateModal = ref(false)
+const createError = ref<string | null>(null)
 
 const editForm = ref({
   firstName: '',
@@ -26,85 +29,20 @@ const createForm = ref({
   firstName: '',
   lastName: '',
   email: '',
+  password: '',
   institution: '',
-  jobTitle: 'Lehrperson',
+  jobTitle: '',
   role: 'user' as UserRole,
 })
 
-const mockUsers: User[] = [
-  {
-    id: 1,
-    firstName: 'Lea',
-    lastName: 'Meier',
-    email: 'lea.meier@example.ch',
-    institution: 'Kantonsschule Alpenblick',
-    jobTitle: 'Lehrperson',
-    funktion: 'Lehrperson',
-    role: 'user',
-    active: true,
-    createdAt: '11.11.2026',
-  },
-  {
-    id: 2,
-    firstName: 'Jonas',
-    lastName: 'Frei',
-    email: 'jonas.frei@example.ch',
-    institution: 'Berufsfachschule Sonnenberg',
-    jobTitle: 'Lehrperson',
-    funktion: 'Lehrperson',
-    role: 'user',
-    active: true,
-    createdAt: '10.11.2026',
-  },
-  {
-    id: 3,
-    firstName: 'Nina',
-    lastName: 'Keller',
-    email: 'nina.keller@example.ch',
-    institution: 'Gymnasium Seeblick',
-    jobTitle: 'Lehrperson',
-    funktion: 'Lehrperson',
-    role: 'user',
-    active: false,
-    createdAt: '09.11.2026',
-  },
-  {
-    id: 4,
-    firstName: 'Marco',
-    lastName: 'Baumann',
-    email: 'marco.baumann@example.ch',
-    institution: 'Kantonsschule Alpenblick',
-    jobTitle: 'Administrator',
-    funktion: 'Administrator',
-    role: 'admin',
-    active: true,
-    createdAt: '08.11.2026',
-  },
-]
-
-const users = ref<User[]>([...mockUsers])
+const users = computed(() => adminStore.users ?? [])
 
 onMounted(async () => {
-  try {
-    await adminStore.getUsers()
-    if (adminStore.users?.length) {
-      users.value = [...adminStore.users]
-    }
-  } catch {}
-
+  await adminStore.getUsers()
   if (filteredUsers.value.length) {
     selectedId.value = filteredUsers.value[0]?.id ?? null
   }
 })
-
-watch(
-  () => adminStore.users,
-  (val) => {
-    if (val?.length) {
-      users.value = [...val]
-    }
-  },
-)
 
 const isActive = (u: User) => Boolean(u.active)
 
@@ -163,15 +101,9 @@ function formatDate(val?: string | null) {
 
 async function toggleActive() {
   if (!selected.value) return
-  const id = selected.value.id
-  const nextActive = !isActive(selected.value)
-  loading.value = true
-  try {
-    await adminStore.updateUser(id, { active: nextActive })
-  } catch {}
-  const item = users.value.find((u) => u.id === id)
-  if (item) item.active = nextActive
-  loading.value = false
+  submitting.value = true
+  await adminStore.updateUser(selected.value.id, { active: !isActive(selected.value) })
+  submitting.value = false
 }
 
 function startEdit() {
@@ -188,35 +120,27 @@ function startEdit() {
 
 async function saveEdit() {
   if (!selected.value) return
-  const id = selected.value.id
-  loading.value = true
-  try {
-    await adminStore.updateUser(id, {
-      firstName: editForm.value.firstName.trim(),
-      lastName: editForm.value.lastName.trim(),
-      institution: editForm.value.institution.trim(),
-      jobTitle: editForm.value.jobTitle.trim(),
-      role: editForm.value.role,
-    })
-  } catch {}
-  const item = users.value.find((u) => u.id === id)
-  if (item) {
-    item.firstName = editForm.value.firstName.trim()
-    item.lastName = editForm.value.lastName.trim()
-    item.institution = editForm.value.institution.trim()
-    item.jobTitle = editForm.value.jobTitle.trim()
-    item.funktion = editForm.value.jobTitle.trim()
-    item.role = editForm.value.role
+  submitting.value = true
+  const updated = await adminStore.updateUser(selected.value.id, {
+    firstName: editForm.value.firstName.trim(),
+    lastName: editForm.value.lastName.trim(),
+    institution: editForm.value.institution.trim(),
+    jobTitle: editForm.value.jobTitle.trim(),
+    role: editForm.value.role,
+  })
+  submitting.value = false
+  if (updated) {
+    isEditing.value = false
   }
-  loading.value = false
-  isEditing.value = false
 }
 
 function openCreateModal() {
+  createError.value = null
   createForm.value = {
     firstName: '',
     lastName: '',
     email: '',
+    password: '',
     institution: '',
     jobTitle: 'Lehrperson',
     role: 'user',
@@ -224,26 +148,28 @@ function openCreateModal() {
   showCreateModal.value = true
 }
 
-function submitCreate() {
-  if (!createForm.value.firstName.trim() || !createForm.value.email.trim()) return
-  const nextId = Math.max(0, ...users.value.map((u) => u.id)) + 1
-  const now = new Date()
-  const day = String(now.getDate()).padStart(2, '0')
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const newUser: User = {
-    id: nextId,
+async function submitCreate() {
+  if (!createForm.value.email.trim() || !createForm.value.password) return
+  createError.value = null
+  submitting.value = true
+  const res = await authStore.register({
     firstName: createForm.value.firstName.trim(),
     lastName: createForm.value.lastName.trim(),
     email: createForm.value.email.trim(),
+    password: createForm.value.password,
     institution: createForm.value.institution.trim(),
-    jobTitle: createForm.value.jobTitle.trim() || roleLabel(createForm.value.role),
-    funktion: createForm.value.jobTitle.trim() || roleLabel(createForm.value.role),
+    jobTitle: createForm.value.jobTitle.trim(),
     role: createForm.value.role,
-    active: true,
-    createdAt: `${day}.${month}.${now.getFullYear()}`,
+  })
+  if (!res) {
+    createError.value = authStore.error ?? 'Benutzer konnte nicht erstellt werden.'
+    submitting.value = false
+    return
   }
-  users.value.unshift(newUser)
-  selectedId.value = newUser.id
+
+  await adminStore.getUsers()
+  selectedId.value = res.id
+  submitting.value = false
   showCreateModal.value = false
 }
 </script>
@@ -289,6 +215,14 @@ function submitCreate() {
         </div>
       </header>
 
+      <div
+        v-if="adminStore.error"
+        class="mb-6 flex items-center gap-2.5 rounded-xl border border-[var(--error-color)] bg-[var(--error-color-light)] px-4 py-3 text-sm text-[var(--error-color)]"
+      >
+        <i class="fa-solid fa-circle-exclamation shrink-0"></i>
+        <span>{{ adminStore.error }}</span>
+      </div>
+
       <div class="border-b border-[var(--border-color)] flex items-center gap-6 sm:gap-8">
         <button
           type="button"
@@ -330,7 +264,15 @@ function submitCreate() {
         </button>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6 items-start">
+      <div
+        v-if="adminStore.loading && !adminStore.users"
+        class="mt-6 flex items-center justify-center gap-3 rounded-2xl border border-[var(--border-color)] bg-[var(--surface-color)] p-10 text-sm text-[var(--text-color-light)]"
+      >
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <span>Benutzer werden geladen ...</span>
+      </div>
+
+      <div v-else class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6 items-start">
         <div class="lg:col-span-6 flex flex-col gap-3">
           <div
             v-for="user in filteredUsers"
@@ -546,7 +488,7 @@ function submitCreate() {
               <button
                 type="button"
                 @click="toggleActive"
-                :disabled="loading"
+                :disabled="submitting"
                 :class="
                   isActive(selected)
                     ? 'border-[var(--error-color)] text-[var(--error-color)] hover:bg-[var(--error-color-light)]'
@@ -559,7 +501,7 @@ function submitCreate() {
               <button
                 type="button"
                 @click="startEdit"
-                :disabled="loading"
+                :disabled="submitting"
                 class="flex-1 py-2.5 px-4 rounded-xl bg-[var(--primary-color)] text-[var(--text-color-white)] text-sm font-medium hover:opacity-90 disabled:opacity-50 transition duration-200 cursor-pointer text-center shadow-sm"
               >
                 Bearbeiten
@@ -573,7 +515,7 @@ function submitCreate() {
               <button
                 type="button"
                 @click="isEditing = false"
-                :disabled="loading"
+                :disabled="submitting"
                 class="flex-1 py-2.5 px-4 rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] text-[var(--text-color)] text-sm font-medium hover:bg-[var(--hover-light-color)] disabled:opacity-50 transition duration-200 cursor-pointer text-center"
               >
                 Abbrechen
@@ -581,7 +523,7 @@ function submitCreate() {
               <button
                 type="button"
                 @click="saveEdit"
-                :disabled="loading"
+                :disabled="submitting"
                 class="flex-1 py-2.5 px-4 rounded-xl bg-[var(--primary-color)] text-[var(--text-color-white)] text-sm font-medium hover:opacity-90 disabled:opacity-50 transition duration-200 cursor-pointer text-center shadow-sm"
               >
                 Speichern
@@ -624,6 +566,14 @@ function submitCreate() {
       </div>
 
       <form @submit.prevent="submitCreate" class="flex flex-col gap-4 mt-4">
+        <div
+          v-if="createError"
+          class="flex items-center gap-2 rounded-xl border border-[var(--error-color)] bg-[var(--error-color-light)] px-3 py-2 text-xs text-[var(--error-color)]"
+        >
+          <i class="fa-solid fa-circle-exclamation shrink-0"></i>
+          <span>{{ createError }}</span>
+        </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div class="flex flex-col gap-1.5">
             <label class="text-xs font-semibold text-[var(--text-color-light)]">Vorname</label>
@@ -652,6 +602,18 @@ function submitCreate() {
             type="email"
             required
             class="h-10 rounded-xl border border-[var(--border-color)] bg-[var(--background-color)] px-3 text-sm text-[var(--text-color)] outline-none focus:border-[var(--primary-color)]"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-semibold text-[var(--text-color-light)]">Passwort</label>
+          <input
+            v-model="createForm.password"
+            type="password"
+            required
+            minlength="8"
+            placeholder="Mind. 8 Zeichen, Buchstaben & Zahlen"
+            class="h-10 rounded-xl border border-[var(--border-color)] bg-[var(--background-color)] px-3 text-sm text-[var(--text-color)] placeholder:text-[var(--text-color-light)] outline-none focus:border-[var(--primary-color)]"
           />
         </div>
 
@@ -691,13 +653,15 @@ function submitCreate() {
           <button
             type="button"
             @click="showCreateModal = false"
-            class="flex-1 py-2.5 px-4 rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] text-[var(--text-color)] text-sm font-medium hover:bg-[var(--hover-light-color)] transition duration-200 cursor-pointer"
+            :disabled="submitting"
+            class="flex-1 py-2.5 px-4 rounded-xl border border-[var(--border-color)] bg-[var(--surface-color)] text-[var(--text-color)] text-sm font-medium hover:bg-[var(--hover-light-color)] disabled:opacity-50 transition duration-200 cursor-pointer"
           >
             Abbrechen
           </button>
           <button
             type="submit"
-            class="flex-1 py-2.5 px-4 rounded-xl bg-[var(--primary-color)] text-[var(--text-color-white)] text-sm font-medium hover:opacity-90 transition duration-200 cursor-pointer shadow-sm"
+            :disabled="submitting"
+            class="flex-1 py-2.5 px-4 rounded-xl bg-[var(--primary-color)] text-[var(--text-color-white)] text-sm font-medium hover:opacity-90 disabled:opacity-50 transition duration-200 cursor-pointer shadow-sm"
           >
             Erstellen
           </button>
