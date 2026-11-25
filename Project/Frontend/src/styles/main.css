@@ -17,6 +17,12 @@ body {
   overflow-x: hidden;
 }
 
+@media (max-width: 767px) {
+  body {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  }
+}
+
 ::-webkit-scrollbar {
   width: 5px;
 }
