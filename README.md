@@ -11,6 +11,22 @@
   <img src="Documentation/Frontend/Logo/cadence-logo.svg" alt="Cadence Logo" width="260">
 </p>
 
+## Vorschau
+
+### Landingpage
+
+![Landingpage](./Documentation/Mockup/Landingpage.png)
+
+### Dashboard
+
+![Dashboard](./Documentation/Mockup/Dashboard.png)
+
+### Feinplanung
+
+![Feinplanung](./Documentation/Mockup/Feinplanung_v2.png)
+
+---
+
 ## Über das Projekt
 
 **Cadence** ist eine webbasierte Plattform zur digitalen Erstellung und Verwaltung von Stundenplänen für Lehrpersonen.
@@ -183,22 +199,6 @@ Die vollständige Projektdokumentation befindet sich im Ordner `Documentation`.
 
 ---
 
-## Vorschau
-
-### Landingpage
-
-![Landingpage](./Documentation/Mockup/Landingpage.png)
-
-### Dashboard
-
-![Dashboard](./Documentation/Mockup/Dashboard.png)
-
-### Feinplanung
-
-![Feinplanung](./Documentation/Mockup/Feinplanung_v2.png)
-
----
-
 ## Verfügbarkeit
 
 Die Anwendung wird über Docker Compose bereitgestellt und kann lokal oder auf einem eigenen Server betrieben werden.
@@ -254,7 +254,3 @@ Entwickelt von:
 Auftraggeber: Lager Stefan
 
 ---
-
-## Lizenz
-
-Dieses Projekt wurde zu Ausbildungszwecken entwickelt und dient ausschliesslich Lern-, Demonstrations- und Bewertungszwecken.
