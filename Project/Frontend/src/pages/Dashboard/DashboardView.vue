@@ -49,10 +49,10 @@ async function routerToModuleDetailed(id: number) {
           <Svg
             class="w-[60px] h-[60px] rounded-lg bg-[var(--secondary-color-light)] text-[var(--secondary-color)]"
           >
-            <i :class="getModuleIcon(module.title)" class="text-[40px]"></i>
+            <i :class="getModuleIcon(module.title) " class=" sm:text-[40] text-[30px]"></i>
           </Svg>
 
-          <h3 class="font-semibold text-[var(--text-color)]">
+          <h3 class="font-semibold text-sm sm:test-m text-[var(--text-color)]">
             {{ module.code }} - {{ module.title }}
           </h3>
         </div>
